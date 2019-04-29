@@ -138,7 +138,9 @@ public class Main {
                     }
 
                     graphics.setColor(Color.DARK_GRAY);
-                    graphics.drawLine(0, UI_HEIGHT, juikit.width(), UI_HEIGHT);
+                    if(REVERSE) {
+                        graphics.drawLine(0, UI_HEIGHT, juikit.width(), UI_HEIGHT);
+                    }
                     for(Line line : LINES) {
                         if(REVERSE) {
                             int y = UI_HEIGHT - (int) (line.getTick() + scroll);
