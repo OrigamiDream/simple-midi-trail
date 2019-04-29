@@ -161,6 +161,8 @@ public class Main {
                 .resizable(false)
                 .visibility(true);
 
+        MidiSystem.getSequencer(false);
+
         Synthesizer synthesizer = MidiSystem.getSynthesizer();
         synthesizer.open();
         synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
