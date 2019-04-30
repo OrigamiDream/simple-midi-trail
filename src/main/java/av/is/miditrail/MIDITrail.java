@@ -70,7 +70,31 @@ public class MIDITrail {
 
         fileMenu.add(open);
 
+        JMenu soundfontMenu = new JMenu("Soundfonts");
+        for(Soundfonts.Soundfont soundfont : Soundfonts.getSoundfonts()) {
+            JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for(Soundfonts.Soundfont other : Soundfonts.getSoundfonts()) {
+                        if(other != soundfont) {
+                            other.menuItem.setSelected(false);
+                        }
+                    }
+                    Soundfonts.CURRENT_SOUNDFONT.set(soundfont);
+                }
+            });
+            menuItem.setText(soundfont.name);
+
+            soundfontMenu.add(menuItem);
+            soundfont.menuItem = menuItem;
+
+            if(Soundfonts.CURRENT_SOUNDFONT.get().equals(soundfont)) {
+                menuItem.setSelected(true);
+            }
+        }
+
         fileBar.add(fileMenu);
+        fileBar.add(soundfontMenu);
 
         juikit.frame().setJMenuBar(fileBar);
         juikit.frame().pack();

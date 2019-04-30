@@ -92,7 +92,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             synthesizer = MidiSystem.getSynthesizer();
             synthesizer.open();
             synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
-            synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new BufferedInputStream(MIDITrail.class.getResourceAsStream("/soundfonts/Z-Doc Grand Piano.sf2"))));
+            synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new BufferedInputStream(MIDITrail.class.getResourceAsStream(Soundfonts.CURRENT_SOUNDFONT.get().path))));
 
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
