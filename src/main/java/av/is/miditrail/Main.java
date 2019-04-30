@@ -2,6 +2,7 @@ package av.is.miditrail;
 
 import avis.juikit.Juikit;
 
+import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
@@ -19,8 +20,9 @@ public class Main {
 
     // Configuration start
     private static final String SOUNDFONT_PATH = "src/main/resources/soundfonts/Full Grand Piano.sf2";
-    private static final String MIDI_PATH = "src/main/resources/midi/Bad Apple.mid";
-    private static final int NOTE_WIDTH = 7;
+    private static final String MIDI_PATH = "src/main/resources/midi/Evans.mid";
+    private static final String PIANO_PATH = "src/main/resources/image/keyboard.png";
+    private static final int NOTE_WIDTH = 10;
     private static final int UI_INDENT = 50;
     private static final boolean REVERSE = true;
     private static final int UI_HEIGHT = 500;
@@ -29,10 +31,32 @@ public class Main {
     private static final Map<Integer, List<Note>> TRACKS = new HashMap<>();
     private static final List<Line> LINES = new ArrayList<>();
 
-    private static final Color[] COLORS = { Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.CYAN, Color.PINK, Color.MAGENTA };
+    private static final Color[] COLORS = {
+            new Color(135, 0, 0),
+            new Color(135, 104, 0),
+            new Color(135, 135, 0),
+            new Color(0, 135, 0),
+            new Color(0, 0, 135),
+            new Color(0, 135, 135),
+            new Color(135, 88, 88),
+            new Color(135, 0, 135)
+    };
+
+    private static final Color[] PRESSED_COLORS = {
+            new Color(205, 0, 0),
+            new Color(205, 160, 0),
+            new Color(205, 205, 0),
+            new Color(0, 205, 0),
+            new Color(0, 0, 205),
+            new Color(0, 205, 205),
+            new Color(205, 140, 140),
+            new Color(205, 0, 205)
+    };
 
     public static void main(String[] args) throws InvalidMidiDataException, IOException, MidiUnavailableException, InterruptedException {
         File file = new File(MIDI_PATH);
+
+        Image image = ImageIO.read(new File(PIANO_PATH));
 
         Sequence sequence = MidiSystem.getSequence(file);
 
@@ -110,7 +134,7 @@ public class Main {
 
         Juikit uikit = Juikit.createFrame()
                 .title("MIDI Trail")
-                .size((NOTE_WIDTH * 127) + (UI_INDENT * 2), UI_HEIGHT + 50)
+                .size((NOTE_WIDTH * 127) + (UI_INDENT * 2), UI_HEIGHT + 90)
                 .centerAlign()
                 .repaintInterval(10L)
 
@@ -122,11 +146,18 @@ public class Main {
                     for(Map.Entry<Integer, List<Note>> entry : TRACKS.entrySet()) {
                         int trackId = entry.getKey();
 
-                        graphics.setColor(COLORS[trackId % COLORS.length]);
 
                         List<Note> notes = entry.getValue();
                         for(int i = 0; i < notes.size(); i++) {
                             Note note = notes.get(i);
+
+                            long fromTick = note.getFromTick();
+
+                            if(-scroll >= fromTick) {
+                                graphics.setColor(PRESSED_COLORS[trackId % PRESSED_COLORS.length]);
+                            } else {
+                                graphics.setColor(COLORS[trackId % COLORS.length]);
+                            }
 
                             if(REVERSE) {
                                 int yDiff = (int) (note.getEndTick() - note.getFromTick());
@@ -149,6 +180,10 @@ public class Main {
                             int y = (int) (line.getTick() + scroll);
                             graphics.drawLine(0, y, juikit.width(), y);
                         }
+                    }
+
+                    if(REVERSE) {
+                        graphics.drawImage(image, 50 + (NOTE_WIDTH * 21), UI_HEIGHT, (NOTE_WIDTH * 88), 70, juikit.panel());
                     }
                 })
 
