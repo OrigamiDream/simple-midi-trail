@@ -19,8 +19,8 @@ import java.util.stream.Stream;
 public class Main {
 
     // Configuration start
-    private static final String SOUNDFONT_PATH = "src/main/resources/soundfonts/Full Grand Piano.sf2";
-    private static final String MIDI_PATH = "src/main/resources/midi/Evans.mid";
+    private static final String SOUNDFONT_PATH = "src/main/resources/soundfonts/Z-Doc Grand Piano.sf2";
+    private static final String MIDI_PATH = "src/main/resources/midi/Marigold.mid";
     private static final String PIANO_PATH = "src/main/resources/image/keyboard.png";
     private static final int NOTE_WIDTH = 10;
     private static final int UI_INDENT = 50;
@@ -220,12 +220,6 @@ public class Main {
                             graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 41, NOTE_WIDTH - 2, 25);
                         }
                     }
-                })
-
-                .mouseWheelMoved((juikit, mouseEvent) -> {
-                    MouseWheelEvent event = (MouseWheelEvent) mouseEvent;
-
-                    juikit.data("SCROLL", juikit.data("SCROLL", Integer.class) + event.getWheelRotation() * -2);
                 })
 
                 .closeOperation(WindowConstants.EXIT_ON_CLOSE)
