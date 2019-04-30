@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -29,6 +30,8 @@ public class Main {
 
     private static final Map<Integer, List<Note>> TRACKS = new HashMap<>();
     private static final List<Line> LINES = new ArrayList<>();
+
+    private static final AtomicBoolean PAUSE = new AtomicBoolean(true);
 
     static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
 
@@ -221,6 +224,9 @@ public class Main {
 
                     graphics.setColor(Color.WHITE);
                     graphics.drawString("Notes: " + noteCount, 25, 35);
+                    if(PAUSE.get()) {
+                        graphics.drawString("PAUSE", 25, 55);
+                    }
                 })
 
                 .closeOperation(WindowConstants.EXIT_ON_CLOSE)
@@ -239,14 +245,26 @@ public class Main {
         sequencer.getTransmitter().setReceiver(synthesizer.getReceiver());
         sequencer.setSequence(sequence);
 
-        Thread.sleep(2000L);
+        uikit.keyTyped((juikit, keyEvent) -> {
+            switch (keyEvent.getKeyCode()) {
+                case 0: // SPACE
+                    PAUSE.set(!PAUSE.get());
 
-        sequencer.start();
+                    if(PAUSE.get()) {
+                        sequencer.stop();
+                    } else {
+                        sequencer.start();
+                    }
+                    break;
+            }
+        });
 
-        while(true) {
-            long tick = sequencer.getTickPosition();
-            uikit.data("SCROLL", (int) -tick);
-        }
+        new Thread(() -> {
+            while(true) {
+                long tick = sequencer.getTickPosition();
+                uikit.data("SCROLL", (int) -tick);
+            }
+        }).start();
     }
 
 }
