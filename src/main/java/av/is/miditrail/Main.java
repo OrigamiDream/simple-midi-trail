@@ -6,7 +6,6 @@ import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseWheelEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
