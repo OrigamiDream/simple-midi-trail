@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -24,11 +25,24 @@ public class TrackReader {
         this.sequence = MidiSystem.getSequence(file);
     }
 
+    class TimeSignature {
+
+        long tick = 0;
+
+        int numerator = 4;
+        int denominator = 4;
+
+    }
+
     public void loadTrack() {
         AtomicInteger atomicTrackId = new AtomicInteger();
         AtomicLong atomicTick = new AtomicLong();
 
         System.out.println("Loading MIDI file: " + file.getAbsolutePath());
+
+        List<TimeSignature> signatures = new ArrayList<>();
+
+        AtomicBoolean signatureDefined = new AtomicBoolean(false);
 
         Stream.of(sequence.getTracks()).forEach(track -> {
             int trackId = atomicTrackId.getAndIncrement();
@@ -84,6 +98,18 @@ public class TrackReader {
                             pendingNotes.clear();
                             break;
                     }
+                } else if(message instanceof MetaMessage && !signatureDefined.get()) {
+                    MetaMessage metaMessage = (MetaMessage) message;
+                    if(metaMessage.getType() == 88) { // TIME SIGNATURE
+                        byte[] data = ((MetaMessage) message).getData();
+
+                        TimeSignature timeSignature = new TimeSignature();
+                        timeSignature.tick = tick;
+                        timeSignature.numerator = data[0] & 0xFF;
+                        timeSignature.denominator = 1 << (data[1] & 0xFF);
+
+                        signatures.add(timeSignature);
+                    }
                 }
 
                 long prevTick = atomicTick.get();
@@ -93,10 +119,33 @@ public class TrackReader {
             }
 
             System.out.println(notes.size() + " Notes of Track #" + trackId);
+            if(!signatureDefined.get()) {
+                signatureDefined.set(true);
+            }
         });
 
-        for(long i = 0; i < atomicTick.get(); i += sequence.getResolution() * 4) {
-            lines.add(new Line(i));
+        if(signatures.isEmpty()) {
+            signatures.add(new TimeSignature());
+        }
+
+        for(int i = 0; i < signatures.size(); i++) {
+            TimeSignature signature = signatures.get(i);
+            TimeSignature nextSignature = null;
+            if(i + 1 != signatures.size()) {
+                nextSignature = signatures.get(i + 1);
+            }
+
+            int step = sequence.getResolution() * 4 / signature.denominator * signature.numerator;
+
+            if(nextSignature != null) {
+                for(long j = signature.tick; j < nextSignature.tick; j += step) {
+                    lines.add(new Line(j));
+                }
+            } else {
+                for(long j = signature.tick; j < atomicTick.get(); j += step) {
+                    lines.add(new Line(j));
+                }
+            }
         }
     }
 
