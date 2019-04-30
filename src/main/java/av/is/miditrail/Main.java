@@ -19,7 +19,7 @@ public class Main {
 
     // Configuration start
     private static final String SOUNDFONT_PATH = "src/main/resources/soundfonts/Z-Doc Grand Piano.sf2";
-    private static final String MIDI_PATH = "src/main/resources/midi/Marigold.mid";
+    private static final String MIDI_PATH = "src/main/resources/midi/Necro Fantasia.mid";
     private static final String PIANO_PATH = "src/main/resources/image/keyboard.png";
     private static final int NOTE_WIDTH = 10;
     private static final int UI_INDENT = 50;
@@ -129,7 +129,7 @@ public class Main {
             System.out.println(notes.size() + " Notes of Track #" + trackId);
         });
 
-        for(long i = 0; i < atomicTick.get(); i += 1000) {
+        for(long i = 0; i < atomicTick.get(); i += sequence.getResolution() * 4) {
             LINES.add(new Line(i));
         }
 
@@ -147,6 +147,8 @@ public class Main {
 
                     int scroll = juikit.data("SCROLL");
 
+                    int noteCount = 0;
+
                     List<Note> pressedNotes = new ArrayList<>();
                     for(Map.Entry<Integer, List<Note>> entry : TRACKS.entrySet()) {
                         int trackId = entry.getKey();
@@ -161,7 +163,13 @@ public class Main {
                             long fromInWindow = fromTick + scroll;
                             long endInWindow = endTick + scroll;
 
-                            if(fromInWindow > juikit.height() || endInWindow < 0) {
+                            boolean beforePassthrough = fromInWindow > juikit.height();
+                            boolean afterPassthrough = endInWindow < 0;
+
+                            if(beforePassthrough || afterPassthrough) {
+                                if(afterPassthrough) {
+                                    noteCount++;
+                                }
                                 continue;
                             }
 
@@ -219,6 +227,9 @@ public class Main {
                             graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 41, NOTE_WIDTH - 2, 25);
                         }
                     }
+
+                    graphics.setColor(Color.WHITE);
+                    graphics.drawString("Notes: " + noteCount, 25, 35);
                 })
 
                 .closeOperation(WindowConstants.EXIT_ON_CLOSE)
