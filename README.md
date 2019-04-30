@@ -1,9 +1,6 @@
 ### Simple MIDI Trail
 ##### in Java
 
+JUIKit을 이용하여 간단하게 만든 MIDI Trail입니다.
 
-JUIKit을 이용하여 간단하게 만든 MIDI Trail Alternative입니다.
-
-4/4 박자 구분선을 구현할 방법을 아시는 분은 Pull Request 부탁드려요.
-
-현재는 1000ms 마다 나오게끔 구현된 상태 입니다.
+Windows 환경에서 작동되는지는 확인하지 못했습니다.
