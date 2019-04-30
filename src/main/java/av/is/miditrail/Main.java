@@ -19,13 +19,13 @@ public class Main {
 
     // Configuration start
     private static final String SOUNDFONT_PATH = "src/main/resources/soundfonts/Z-Doc Grand Piano.sf2";
-    private static final String MIDI_PATH = "src/main/resources/midi/Necro Fantasia.mid";
+    private static final String MIDI_PATH = "src/main/resources/midi/Last Brutal Sister Flandre S.mid";
     private static final String PIANO_PATH = "src/main/resources/image/keyboard.png";
     private static final int NOTE_WIDTH = 10;
-    private static final int UI_INDENT = 50;
-    private static final boolean REVERSE = true;
-    private static final int UI_HEIGHT = 500;
     // Configuration end
+
+    private static final int DEFAULT_UI_INDENT = 50;
+    private static final int DEFAULT_UI_HEIGHT = 500;
 
     private static final Map<Integer, List<Note>> TRACKS = new HashMap<>();
     private static final List<Line> LINES = new ArrayList<>();
@@ -135,17 +135,19 @@ public class Main {
 
         Juikit uikit = Juikit.createFrame()
                 .title("MIDI Trail")
-                .size((NOTE_WIDTH * 127) + (UI_INDENT * 2), UI_HEIGHT + 90)
+                .size((NOTE_WIDTH * 127) + (DEFAULT_UI_INDENT * 2), DEFAULT_UI_HEIGHT + 90)
                 .centerAlign()
                 .repaintInterval(1L)
 
                 .data("SCROLL", 0)
 
                 .painter((juikit, graphics) -> {
+                    int indent = (juikit.width() - NOTE_WIDTH * 127) / 2;
+                    int height = juikit.height() - 90;
+                    int scroll = juikit.data("SCROLL");
+
                     graphics.setColor(Color.BLACK);
                     graphics.fillRect(0, 0, juikit.width(), juikit.height());
-
-                    int scroll = juikit.data("SCROLL");
 
                     int noteCount = 0;
 
@@ -165,15 +167,17 @@ public class Main {
 
                             boolean beforePassthrough = fromInWindow > juikit.height();
                             boolean afterPassthrough = endInWindow < 0;
+                            boolean wayPassthrough = fromInWindow < 0;
+
+                            if(wayPassthrough) {
+                                noteCount++;
+                            }
 
                             if(beforePassthrough || afterPassthrough) {
-                                if(afterPassthrough) {
-                                    noteCount++;
-                                }
                                 continue;
                             }
 
-                            boolean pressed = -scroll >= fromTick && -scroll < endTick;
+                            boolean pressed = -scroll > fromTick && -scroll < endTick;
 
                             Color color;
                             if(pressed) {
@@ -186,12 +190,8 @@ public class Main {
 
                             graphics.setColor(color);
 
-                            if(REVERSE) {
-                                int yDiff = (int) (note.getEndTick() - note.getFromTick());
-                                graphics.fillRect(UI_INDENT + note.getKey() * NOTE_WIDTH, UI_HEIGHT - (int) (note.getFromTick() + scroll) - yDiff, NOTE_WIDTH, yDiff);
-                            } else {
-                                graphics.fillRect(UI_INDENT + note.getKey() * NOTE_WIDTH, (int) note.getFromTick() + scroll, -NOTE_WIDTH, (int) (note.getEndTick() - note.getFromTick()));
-                            }
+                            int yDiff = (int) (note.getEndTick() - note.getFromTick());
+                            graphics.fillRect(indent + note.getKey() * NOTE_WIDTH, height - (int) (note.getFromTick() + scroll) - yDiff, NOTE_WIDTH, yDiff);
 
                             if(pressed) {
                                 pressedNotes.add(note);
@@ -200,31 +200,22 @@ public class Main {
                     }
 
                     graphics.setColor(Color.DARK_GRAY);
-                    if(REVERSE) {
-                        graphics.drawLine(0, UI_HEIGHT, juikit.width(), UI_HEIGHT);
-                    }
+                    graphics.drawLine(0, height, juikit.width(), height);
                     for(Line line : LINES) {
-                        if(REVERSE) {
-                            int y = UI_HEIGHT - (int) (line.getTick() + scroll);
-                            graphics.drawLine(0, y, juikit.width(), y);
-                        } else {
-                            int y = (int) (line.getTick() + scroll);
-                            graphics.drawLine(0, y, juikit.width(), y);
-                        }
+                        int y = height - (int) (line.getTick() + scroll);
+                        graphics.drawLine(0, y, juikit.width(), y);
                     }
 
-                    if(REVERSE) {
-                        graphics.drawImage(image, 50 + (NOTE_WIDTH * 21), UI_HEIGHT, (NOTE_WIDTH * 88), 70, juikit.panel());
-                    }
+                    graphics.drawImage(image, indent + (NOTE_WIDTH * 21), height, (NOTE_WIDTH * 88), 70, juikit.panel());
 
                     for(int i = 0; i < pressedNotes.size(); i++) {
                         Note note = pressedNotes.get(i);
 
                         graphics.setColor(note.getPressedColor());
                         if(note.isSharp()) {
-                            graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 1, NOTE_WIDTH - 2, 37);
+                            graphics.fillRect((indent + note.getKey() * NOTE_WIDTH) + 1, height + 1, NOTE_WIDTH - 2, 37);
                         } else {
-                            graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 41, NOTE_WIDTH - 2, 25);
+                            graphics.fillRect((indent + note.getKey() * NOTE_WIDTH) + 1, height + 41, NOTE_WIDTH - 2, 25);
                         }
                     }
 
@@ -234,7 +225,6 @@ public class Main {
 
                 .closeOperation(WindowConstants.EXIT_ON_CLOSE)
                 .background(Color.BLACK)
-                .resizable(false)
                 .visibility(true);
 
         MidiSystem.getSequencer(false);
