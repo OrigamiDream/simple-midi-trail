@@ -3,6 +3,8 @@ package av.is.miditrail;
 import java.awt.*;
 import java.util.Objects;
 
+import static av.is.miditrail.MIDITrail.KEYS;
+
 public class Note {
 
     private final long fromTick;
@@ -17,7 +19,7 @@ public class Note {
         this.fromTick = fromTick;
         this.key = key;
 
-        this.sharp = Main.KEYS[key % 12] == 1;
+        this.sharp = KEYS[key % 12] == 1;
     }
 
     public long getFromTick() {
