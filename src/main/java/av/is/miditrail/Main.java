@@ -31,6 +31,8 @@ public class Main {
     private static final Map<Integer, List<Note>> TRACKS = new HashMap<>();
     private static final List<Line> LINES = new ArrayList<>();
 
+    static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
+
     private static final Color[] COLORS = {
             new Color(135, 0, 0),
             new Color(135, 104, 0),
@@ -136,34 +138,56 @@ public class Main {
                 .title("MIDI Trail")
                 .size((NOTE_WIDTH * 127) + (UI_INDENT * 2), UI_HEIGHT + 90)
                 .centerAlign()
-                .repaintInterval(10L)
+                .repaintInterval(1L)
 
                 .data("SCROLL", 0)
 
                 .painter((juikit, graphics) -> {
+                    graphics.setColor(Color.BLACK);
+                    graphics.fillRect(0, 0, juikit.width(), juikit.height());
+
                     int scroll = juikit.data("SCROLL");
 
+                    List<Note> pressedNotes = new ArrayList<>();
                     for(Map.Entry<Integer, List<Note>> entry : TRACKS.entrySet()) {
                         int trackId = entry.getKey();
-
 
                         List<Note> notes = entry.getValue();
                         for(int i = 0; i < notes.size(); i++) {
                             Note note = notes.get(i);
 
                             long fromTick = note.getFromTick();
+                            long endTick = note.getEndTick();
 
-                            if(-scroll >= fromTick) {
-                                graphics.setColor(PRESSED_COLORS[trackId % PRESSED_COLORS.length]);
-                            } else {
-                                graphics.setColor(COLORS[trackId % COLORS.length]);
+                            long fromInWindow = fromTick + scroll;
+                            long endInWindow = endTick + scroll;
+
+                            if(fromInWindow > juikit.height() || endInWindow < 0) {
+                                continue;
                             }
+
+                            boolean pressed = -scroll >= fromTick && -scroll < endTick;
+
+                            Color color;
+                            if(pressed) {
+                                color = PRESSED_COLORS[trackId % PRESSED_COLORS.length];
+                                note.setPressedColor(color);
+                            } else {
+                                color = COLORS[trackId % COLORS.length];
+                                note.setColor(color);
+                            }
+
+                            graphics.setColor(color);
 
                             if(REVERSE) {
                                 int yDiff = (int) (note.getEndTick() - note.getFromTick());
                                 graphics.fillRect(UI_INDENT + note.getKey() * NOTE_WIDTH, UI_HEIGHT - (int) (note.getFromTick() + scroll) - yDiff, NOTE_WIDTH, yDiff);
                             } else {
                                 graphics.fillRect(UI_INDENT + note.getKey() * NOTE_WIDTH, (int) note.getFromTick() + scroll, -NOTE_WIDTH, (int) (note.getEndTick() - note.getFromTick()));
+                            }
+
+                            if(pressed) {
+                                pressedNotes.add(note);
                             }
                         }
                     }
@@ -184,6 +208,17 @@ public class Main {
 
                     if(REVERSE) {
                         graphics.drawImage(image, 50 + (NOTE_WIDTH * 21), UI_HEIGHT, (NOTE_WIDTH * 88), 70, juikit.panel());
+                    }
+
+                    for(int i = 0; i < pressedNotes.size(); i++) {
+                        Note note = pressedNotes.get(i);
+
+                        graphics.setColor(note.getPressedColor());
+                        if(note.isSharp()) {
+                            graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 1, NOTE_WIDTH - 2, 37);
+                        } else {
+                            graphics.fillRect((UI_INDENT + note.getKey() * NOTE_WIDTH) + 1, UI_HEIGHT + 41, NOTE_WIDTH - 2, 25);
+                        }
                     }
                 })
 

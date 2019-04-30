@@ -1,5 +1,6 @@
 package av.is.miditrail;
 
+import java.awt.*;
 import java.util.Objects;
 
 public class Note {
@@ -8,9 +9,15 @@ public class Note {
     private long endTick;
     private final int key;
 
+    private final boolean sharp;
+    private Color color;
+    private Color pressedColor;
+
     public Note(long fromTick, int key) {
         this.fromTick = fromTick;
         this.key = key;
+
+        this.sharp = Main.KEYS[key % 12] == 1;
     }
 
     public long getFromTick() {
@@ -27,6 +34,26 @@ public class Note {
 
     public void setEndTick(long endTick) {
         this.endTick = endTick;
+    }
+
+    public boolean isSharp() {
+        return sharp;
+    }
+
+    public Color getPressedColor() {
+        return pressedColor;
+    }
+
+    public void setPressedColor(Color pressedColor) {
+        this.pressedColor = pressedColor;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     @Override
