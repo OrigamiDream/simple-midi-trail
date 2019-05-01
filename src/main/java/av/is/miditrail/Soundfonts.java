@@ -22,6 +22,7 @@ public class Soundfonts {
 
     private static final List<Soundfont> SOUNDFONTS = new ArrayList<>();
     static {
+        SOUNDFONTS.add(new Soundfont("Default System Soundfont", "INVALID"));
         SOUNDFONTS.add(new Soundfont("Z-Doc Grand Piano", "/soundfonts/Z-Doc Grand Piano.sf2"));
         SOUNDFONTS.add(new Soundfont("Fazioli Grand Piano", "/soundfonts/Fazioli Grand Piano.sf2"));
     }
