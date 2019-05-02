@@ -21,7 +21,7 @@ public class MenuItemSoundfontAdd extends MenuItem<MenuSoundfont> {
             @Override
             public void actionPerformed(ActionEvent e) {
                 FileDialog dialog = new FileDialog(manager.getJuikit().frame());
-                dialog.setFilenameFilter((dir, name) -> name.endsWith(".sf2"));
+                dialog.setFilenameFilter((dir, name) -> name.endsWith(".sf2") || name.endsWith(".sf3"));
                 dialog.setVisible(true);
 
                 if(dialog.getFile() != null) {
