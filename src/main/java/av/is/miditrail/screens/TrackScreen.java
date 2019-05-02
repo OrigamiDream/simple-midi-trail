@@ -95,7 +95,12 @@ public class TrackScreen extends AbstractLoadingScreen {
             Soundfonts.Soundfont soundfont = Soundfonts.CURRENT_SOUNDFONT.get();
             if(!soundfont.path.equals("INVALID")) {
                 synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
-                synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new BufferedInputStream(MIDITrail.class.getResourceAsStream(Soundfonts.CURRENT_SOUNDFONT.get().path))));
+
+                if(soundfont.file) {
+                    synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new File(soundfont.path)));
+                } else {
+                    synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new BufferedInputStream(MIDITrail.class.getResourceAsStream(soundfont.path))));
+                }
             }
 
             sequencer = MidiSystem.getSequencer();

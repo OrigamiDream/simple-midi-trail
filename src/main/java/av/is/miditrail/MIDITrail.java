@@ -1,5 +1,6 @@
 package av.is.miditrail;
 
+import av.is.miditrail.menus.MenuBarManager;
 import av.is.miditrail.screens.EmptyScreen;
 import av.is.miditrail.screens.ScreenManager;
 import av.is.miditrail.screens.TrackScreen;
@@ -8,9 +9,11 @@ import avis.juikit.Juikit;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
+import java.io.*;
 
 public class MIDITrail {
+
+    static final String CONFIGURATION_FILE_NAME = "config.middata";
 
     public static final int NOTE_WIDTH = 10;
     public static final int DEFAULT_UI_INDENT = 50;
@@ -26,6 +29,16 @@ public class MIDITrail {
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
+        Configuration configuration;
+        try(FileInputStream fileInputStream = new FileInputStream(new File(CONFIGURATION_FILE_NAME));
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
+
+            configuration = (Configuration) objectInputStream.readObject();
+        } catch (Exception e) {
+            configuration = new Configuration();
+        }
+        Soundfonts.loadSoundfonts(configuration);
+
         Juikit juikit = Juikit.createFrame();
 
         if(juikit.macOS()) {
@@ -34,7 +47,7 @@ public class MIDITrail {
 
         ScreenManager screenManager = new ScreenManager();
 
-        setupMenuBar(juikit, screenManager);
+        new MenuBarManager(juikit, screenManager, configuration).init();
 
         juikit.title("MIDI Trail")
                 .size((NOTE_WIDTH * 127) + (DEFAULT_UI_INDENT * 2), DEFAULT_UI_HEIGHT + 90)
@@ -47,57 +60,6 @@ public class MIDITrail {
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
 
         screenManager.setScreen(new EmptyScreen(juikit, screenManager));
-    }
-
-    private static void setupMenuBar(Juikit juikit, ScreenManager screenManager) {
-        JMenuBar fileBar = new JMenuBar();
-
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem open = new JMenuItem(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                FileDialog dialog = new FileDialog(juikit.frame());
-                dialog.setFilenameFilter((dir, name) -> name.endsWith(".mid") || name.endsWith(".midi"));
-                dialog.setVisible(true);
-
-                if(dialog.getFile() != null) {
-                    screenManager.setScreen(new TrackScreen(juikit, screenManager, new File(dialog.getDirectory() + dialog.getFile())));
-                }
-            }
-        });
-        open.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        open.setText("Open...");
-
-        fileMenu.add(open);
-
-        JMenu soundfontMenu = new JMenu("Soundfonts");
-        for(Soundfonts.Soundfont soundfont : Soundfonts.getSoundfonts()) {
-            JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    for(Soundfonts.Soundfont other : Soundfonts.getSoundfonts()) {
-                        if(other != soundfont) {
-                            other.menuItem.setSelected(false);
-                        }
-                    }
-                    Soundfonts.CURRENT_SOUNDFONT.set(soundfont);
-                }
-            });
-            menuItem.setText(soundfont.name);
-
-            soundfontMenu.add(menuItem);
-            soundfont.menuItem = menuItem;
-
-            if(Soundfonts.CURRENT_SOUNDFONT.get().equals(soundfont)) {
-                menuItem.setSelected(true);
-            }
-        }
-
-        fileBar.add(fileMenu);
-        fileBar.add(soundfontMenu);
-
-        juikit.frame().setJMenuBar(fileBar);
-        juikit.frame().pack();
     }
 
 }
