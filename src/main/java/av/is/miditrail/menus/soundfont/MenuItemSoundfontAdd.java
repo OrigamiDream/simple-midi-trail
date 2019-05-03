@@ -1,6 +1,5 @@
 package av.is.miditrail.menus.soundfont;
 
-import av.is.miditrail.Soundfonts;
 import av.is.miditrail.menus.MenuBarManager;
 import av.is.miditrail.menus.MenuItem;
 
@@ -21,12 +20,14 @@ public class MenuItemSoundfontAdd extends MenuItem<MenuSoundfont> {
             @Override
             public void actionPerformed(ActionEvent e) {
                 FileDialog dialog = new FileDialog(manager.getJuikit().frame());
-                dialog.setFilenameFilter((dir, name) -> name.endsWith(".sf2") || name.endsWith(".sf3"));
+                dialog.setMultipleMode(true);
+                dialog.setFilenameFilter((dir, name) -> name.toLowerCase().endsWith(".sf2") || name.toLowerCase().endsWith(".sf3"));
                 dialog.setVisible(true);
 
-                if(dialog.getFile() != null) {
-                    Soundfonts.addSoundfont(manager.getConfiguration(), new File(dialog.getDirectory() + dialog.getFile()));
-                    manager.getConfiguration().save();
+                if(dialog.getFiles() != null && dialog.getFiles().length > 0) {
+                    for(File file : dialog.getFiles()) {
+                        manager.getSoundfontManager().addSoundfontFile(file);
+                    }
                     manager.refresh();
                 }
             }

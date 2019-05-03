@@ -1,19 +1,19 @@
 package av.is.miditrail;
 
+import av.is.miditrail.configurations.Configuration;
 import av.is.miditrail.menus.MenuBarManager;
 import av.is.miditrail.screens.EmptyScreen;
 import av.is.miditrail.screens.ScreenManager;
-import av.is.miditrail.screens.TrackScreen;
+import av.is.miditrail.soundfonts.SoundfontManager;
 import avis.juikit.Juikit;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.io.*;
 
 public class MIDITrail {
 
-    static final String CONFIGURATION_FILE_NAME = "config.middata";
+    public static final String CONFIGURATION_FILE_NAME = "config.middata";
 
     public static final int NOTE_WIDTH = 10;
     public static final int DEFAULT_UI_INDENT = 50;
@@ -37,17 +37,17 @@ public class MIDITrail {
         } catch (Exception e) {
             configuration = new Configuration();
         }
-        Soundfonts.loadSoundfonts(configuration);
-
         Juikit juikit = Juikit.createFrame();
 
         if(juikit.macOS()) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
 
-        ScreenManager screenManager = new ScreenManager();
+        SoundfontManager soundfontManager = new SoundfontManager(configuration);
 
-        new MenuBarManager(juikit, screenManager, configuration).init();
+        ScreenManager screenManager = new ScreenManager(soundfontManager);
+
+        new MenuBarManager(juikit, screenManager, configuration, soundfontManager).init();
 
         juikit.title("MIDI Trail")
                 .size((NOTE_WIDTH * 127) + (DEFAULT_UI_INDENT * 2), DEFAULT_UI_HEIGHT + 90)

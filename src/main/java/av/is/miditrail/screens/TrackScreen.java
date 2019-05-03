@@ -1,6 +1,9 @@
 package av.is.miditrail.screens;
 
 import av.is.miditrail.*;
+import av.is.miditrail.configurations.Soundfont;
+import av.is.miditrail.configurations.SoundfontGroup;
+import av.is.miditrail.soundfonts.SoundfontManager;
 import avis.juikit.Juikit;
 
 import javax.imageio.ImageIO;
@@ -11,6 +14,9 @@ import java.awt.event.KeyListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +73,13 @@ public class TrackScreen extends AbstractLoadingScreen {
         } catch (InvalidMidiDataException | IOException e) {
             e.printStackTrace();
         }
+        screenManager.getSoundfontManager().setSoundfontListener(newSoundfont -> {
+            try {
+                refreshSoundfontGroup(newSoundfont);
+            } catch (InvalidMidiDataException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -92,21 +105,12 @@ public class TrackScreen extends AbstractLoadingScreen {
             synthesizer = MidiSystem.getSynthesizer();
             synthesizer.open();
 
-            Soundfonts.Soundfont soundfont = Soundfonts.CURRENT_SOUNDFONT.get();
-            if(!soundfont.path.equals("INVALID")) {
-                synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
-
-                if(soundfont.file) {
-                    synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new File(soundfont.path)));
-                } else {
-                    synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new BufferedInputStream(MIDITrail.class.getResourceAsStream(soundfont.path))));
-                }
-            }
-
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
             sequencer.getTransmitter().setReceiver(synthesizer.getReceiver());
             sequencer.setSequence(reader.getSequence());
+
+            refreshSoundfontGroup(screenManager.getSoundfontManager().getCurrentSoundfont());
         } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
             e.printStackTrace();
         }
@@ -115,6 +119,34 @@ public class TrackScreen extends AbstractLoadingScreen {
             Thread.sleep(2000L);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void refreshSoundfontGroup(SoundfontGroup soundfontGroup) throws InvalidMidiDataException, IOException {
+        if(!soundfontGroup.isDefault()) {
+            for(Instrument instrument : synthesizer.getAvailableInstruments()) {
+                synthesizer.unloadInstrument(instrument);
+            }
+            synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
+
+            List<Soundfont> invalid = new ArrayList<>();
+            for(Soundfont soundfont : soundfontGroup.getSoundfonts()) {
+                File file = new File(soundfont.getFilePath());
+                if(file.exists()) {
+                    synthesizer.loadAllInstruments(MidiSystem.getSoundbank(new File(soundfont.getFilePath())));
+                } else {
+                    invalid.add(soundfont);
+                }
+            }
+            System.out.println("Soundfont: " + soundfontGroup.getId() + " (" + (soundfontGroup.getSoundfonts().size() - invalid.size()) + " elements)");
+            if(invalid.size() > 0) {
+                System.out.println("Invalid soundfonts:");
+                for(Soundfont soundfont : invalid) {
+                    System.out.println(" - " + soundfont.getFilePath());
+                }
+            }
+        } else {
+            System.out.println("Soundfont: " + SoundfontManager.DEFAULT_SYSTEM_SOUNDFONT_ID);
         }
     }
 
@@ -260,5 +292,6 @@ public class TrackScreen extends AbstractLoadingScreen {
         if(synthesizer != null) {
             synthesizer.close();
         }
+        screenManager.getSoundfontManager().setSoundfontListener(null);
     }
 }

@@ -1,4 +1,4 @@
-package av.is.miditrail;
+package av.is.miditrail.configurations;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,24 +11,25 @@ import static av.is.miditrail.MIDITrail.CONFIGURATION_FILE_NAME;
 
 public class Configuration implements Serializable {
 
-    public static class SoundfontFile implements Serializable {
+    private static final long serialVersionUID = 539993014345671716L;
 
-        String filePath;
-        String fileName;
+    private List<SoundfontGroup> soundfontGroups = new ArrayList<>();
 
-        public SoundfontFile(String filePath, String fileName) {
-            this.filePath = filePath;
-            this.fileName = fileName;
+    private SoundfontGroup lastSoundfont;
+
+    public List<SoundfontGroup> getSoundfontGroups() {
+        if(soundfontGroups == null) {
+            soundfontGroups = new ArrayList<>();
         }
+        return soundfontGroups;
     }
 
-    private List<SoundfontFile> soundfonts = new ArrayList<>();
+    public SoundfontGroup getLastSoundfont() {
+        return lastSoundfont;
+    }
 
-    public List<SoundfontFile> getSoundfonts() {
-        if(soundfonts == null) {
-            soundfonts = new ArrayList<>();
-        }
-        return soundfonts;
+    public void setLastSoundfont(SoundfontGroup lastSoundfont) {
+        this.lastSoundfont = lastSoundfont;
     }
 
     public void save() {

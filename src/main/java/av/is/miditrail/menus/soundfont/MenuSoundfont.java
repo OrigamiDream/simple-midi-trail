@@ -1,6 +1,6 @@
 package av.is.miditrail.menus.soundfont;
 
-import av.is.miditrail.Soundfonts;
+import av.is.miditrail.configurations.SoundfontGroup;
 import av.is.miditrail.menus.Menu;
 import av.is.miditrail.menus.MenuBarManager;
 
@@ -16,21 +16,16 @@ public class MenuSoundfont extends Menu {
     public JMenu createMenu() {
         JMenu menu = new JMenu("Soundfont");
         item(menu, new MenuItemSoundfontAdd(this, manager));
+        item(menu, new MenuItemSoundfontDirectoryAdd(this, manager));
         separate(menu);
 
-        boolean manual = false;
-        for(Soundfonts.Soundfont soundfont : Soundfonts.getSoundfonts()) {
-            MenuItemSoundfont item = new MenuItemSoundfont(this, manager, soundfont);
-
-            if(soundfont.file && !manual) {
-                manual = true;
-                separate(menu);
-            }
+        for(SoundfontGroup soundfontGroup : manager.getSoundfontManager().getSoundfonts()) {
+            MenuItemSoundfont item = new MenuItemSoundfont(this, manager, soundfontGroup);
 
             JMenuItem menuItem = item(menu, item);
-            soundfont.menuItem = menuItem;
+            soundfontGroup.setMenuItem(menuItem);
 
-            if(Soundfonts.CURRENT_SOUNDFONT.get().equals(soundfont)) {
+            if(manager.getSoundfontManager().getCurrentSoundfont().equals(soundfontGroup)) {
                 menuItem.setSelected(true);
             }
         }
