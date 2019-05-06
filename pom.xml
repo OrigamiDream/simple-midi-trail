@@ -8,6 +8,7 @@
     <artifactId>miditrail</artifactId>
     <version>1.0-SNAPSHOT</version>
     <build>
+        <finalName>MIDITrail</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
