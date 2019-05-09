@@ -161,17 +161,6 @@ public class TrackScreen extends AbstractLoadingScreen {
         keyListener = new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                switch (e.getExtendedKeyCode()) {
-                    case 32: // SPACE
-                        pause.set(!pause.get());
-
-                        if(pause.get()) {
-                            sequencer.stop();
-                        } else {
-                            sequencer.start();
-                        }
-                        break;
-                }
             }
 
             @Override
@@ -180,6 +169,16 @@ public class TrackScreen extends AbstractLoadingScreen {
 
             @Override
             public void keyReleased(KeyEvent e) {
+                if(e.getExtendedKeyCode() == 32 || e.getKeyCode() == 32) {
+                    // SPACE
+                    pause.set(!pause.get());
+        
+                    if(pause.get()) {
+                        sequencer.stop();
+                    } else {
+                        sequencer.start();
+                    }
+                }
             }
         };
         juikit.keyListener(keyListener);
@@ -188,7 +187,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             graphics.fillRect(0, 0, juikit.width(), juikit.height());
 
             int indent = (juikit.width() - NOTE_WIDTH * 127) / 2;
-            int height = juikit.height() - 90;
+            int height = juikit.height() - juikit.data("ADDITIONAL_HEIGHT", int.class);
             int scroll = juikit.data("SCROLL");
 
             graphics.setColor(Color.BLACK);

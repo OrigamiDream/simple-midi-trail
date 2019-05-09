@@ -3,5 +3,5 @@
 *.iml
 dependency-reduced-pom.xml
 config.middata
-soundfonts
-midis
+test-soundfonts
+test-midis

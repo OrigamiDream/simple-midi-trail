@@ -25,6 +25,8 @@ public class MIDITrail {
     public static final String LOADING = "LOADING";
     public static final String OPACITY = "OPACITY";
     public static final String RUNNING = "RUNNING";
+    
+    public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
 
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -48,14 +50,23 @@ public class MIDITrail {
         ScreenManager screenManager = new ScreenManager(soundfontManager);
 
         new MenuBarManager(juikit, screenManager, configuration, soundfontManager).init();
+        
+        int additionalHeight;
+        if(juikit.windows()) {
+            additionalHeight = 130;
+        } else {
+            additionalHeight = 90;
+        }
 
         juikit.title("MIDI Trail")
-                .size((NOTE_WIDTH * 127) + (DEFAULT_UI_INDENT * 2), DEFAULT_UI_HEIGHT + 90)
+                .size((NOTE_WIDTH * 127) + (DEFAULT_UI_INDENT * 2), DEFAULT_UI_HEIGHT + additionalHeight)
                 .centerAlign()
                 .repaintInterval(10L)
                 .closeOperation(WindowConstants.EXIT_ON_CLOSE)
                 .background(Color.BLACK)
                 .visibility(true);
+        
+        juikit.data(ADDITIONAL_HEIGHT, additionalHeight);
 
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
 
