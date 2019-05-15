@@ -134,6 +134,9 @@ public class TrackScreen extends AbstractLoadingScreen {
             for(Instrument instrument : synthesizer.getAvailableInstruments()) {
                 synthesizer.unloadInstrument(instrument);
             }
+            for(Instrument instrument : synthesizer.getLoadedInstruments()) {
+                synthesizer.unloadInstrument(instrument);
+            }
             synthesizer.unloadAllInstruments(synthesizer.getDefaultSoundbank());
 
             List<Soundfont> invalid = new ArrayList<>();
