@@ -25,6 +25,9 @@ public class MIDITrail {
     public static final String LOADING = "LOADING";
     public static final String OPACITY = "OPACITY";
     public static final String RUNNING = "RUNNING";
+    public static final String SCROLL = "SCROLL";
+    public static final String MULTIPLY = "MULT";
+    public static final String MULTIPLY_FORMATTED = "MULT_FORMATTED";
     
     public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
 
@@ -67,7 +70,9 @@ public class MIDITrail {
                 .visibility(true);
         
         juikit.data(ADDITIONAL_HEIGHT, additionalHeight);
-
+        juikit.data(SCROLL, 0);
+        juikit.data(MULTIPLY, 1d);
+        juikit.data(MULTIPLY_FORMATTED, "1");
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
 
         screenManager.setScreen(new EmptyScreen(juikit, screenManager));

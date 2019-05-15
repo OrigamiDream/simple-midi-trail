@@ -5,29 +5,35 @@ import av.is.miditrail.configurations.Soundfont;
 import av.is.miditrail.configurations.SoundfontGroup;
 import av.is.miditrail.soundfonts.SoundfontManager;
 import avis.juikit.Juikit;
+import avis.juikit.internal.MouseListenerDelegate;
 
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static av.is.miditrail.MIDITrail.NOTE_WIDTH;
+import static av.is.miditrail.MIDITrail.*;
 
 public class TrackScreen extends AbstractLoadingScreen {
 
     private static final String LOADING_TEXT = "Loading...";
+
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
     private static final Color[] COLORS = {
             new Color(135, 0, 0),
@@ -55,6 +61,7 @@ public class TrackScreen extends AbstractLoadingScreen {
 
     private TrackReader reader;
     private KeyListener keyListener;
+    private MouseListenerDelegate mouseListenerDelegate;
     private boolean running = false;
 
     private Synthesizer synthesizer;
@@ -152,10 +159,13 @@ public class TrackScreen extends AbstractLoadingScreen {
 
     @Override
     void onLoad() {
+        juikit.data(MULTIPLY, 1d);
+        juikit.data(MULTIPLY_FORMATTED, "1");
         new Thread(() -> {
             while(running) {
                 long tick = sequencer.getTickPosition();
-                juikit.data("SCROLL", (int) -tick);
+                tick /= juikit.data(MULTIPLY, double.class);
+                juikit.data(SCROLL, (int) -tick);
             }
         }).start();
         keyListener = new KeyListener() {
@@ -182,13 +192,54 @@ public class TrackScreen extends AbstractLoadingScreen {
             }
         };
         juikit.keyListener(keyListener);
+        mouseListenerDelegate = new MouseListenerDelegate() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                double multiply = juikit.data(MULTIPLY);
+                multiply += (-e.getWheelRotation() / 100d);
+                multiply = Math.max(0.01, multiply);
+                juikit.data(MULTIPLY, multiply);
+                juikit.data(MULTIPLY_FORMATTED, DECIMAL_FORMAT.format(multiply));
+            }
+        };
+        juikit.mouseListener(mouseListenerDelegate);
         juikit.painter((juikit, graphics) -> {
             graphics.setColor(Color.BLACK);
             graphics.fillRect(0, 0, juikit.width(), juikit.height());
 
             int indent = (juikit.width() - NOTE_WIDTH * 127) / 2;
             int height = juikit.height() - juikit.data("ADDITIONAL_HEIGHT", int.class);
-            int scroll = juikit.data("SCROLL");
+            int scroll = juikit.data(SCROLL);
+            double multiply = juikit.data(MULTIPLY);
+            String formattedMultiply = juikit.data(MULTIPLY_FORMATTED);
 
             graphics.setColor(Color.BLACK);
             graphics.fillRect(0, 0, juikit.width(), juikit.height());
@@ -205,6 +256,9 @@ public class TrackScreen extends AbstractLoadingScreen {
 
                     long fromTick = note.getFromTick();
                     long endTick = note.getEndTick();
+
+                    fromTick /= multiply;
+                    endTick /= multiply;
 
                     long fromInWindow = fromTick + scroll;
                     long endInWindow = endTick + scroll;
@@ -234,8 +288,8 @@ public class TrackScreen extends AbstractLoadingScreen {
 
                     graphics.setColor(color);
 
-                    int yDiff = (int) (note.getEndTick() - note.getFromTick());
-                    graphics.fillRect(indent + note.getKey() * NOTE_WIDTH, height - (int) (note.getFromTick() + scroll) - yDiff, NOTE_WIDTH, yDiff);
+                    int yDiff = (int) (endTick - fromTick);
+                    graphics.fillRect(indent + note.getKey() * NOTE_WIDTH, height - (int) (fromTick + scroll) - yDiff, NOTE_WIDTH, yDiff);
 
                     if(pressed) {
                         pressedNotes.add(note);
@@ -246,7 +300,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             graphics.setColor(Color.DARK_GRAY);
             graphics.drawLine(0, height, juikit.width(), height);
             for(Line line : reader.getLines()) {
-                int y = height - (int) (line.getTick() + scroll);
+                int y = height - (int) (line.getTick() / multiply + scroll);
                 graphics.drawLine(0, y, juikit.width(), y);
             }
 
@@ -265,8 +319,9 @@ public class TrackScreen extends AbstractLoadingScreen {
 
             graphics.setColor(Color.WHITE);
             graphics.drawString("Notes: " + noteCount, 25, 35);
+            graphics.drawString("Multiply: " + formattedMultiply, 25, 55);
             if(pause.get()) {
-                graphics.drawString("PAUSE", 25, 55);
+                graphics.drawString("PAUSE", 25, 75);
             }
         });
     }
@@ -279,6 +334,11 @@ public class TrackScreen extends AbstractLoadingScreen {
         });
         if(keyListener != null) {
             juikit.frame().removeKeyListener(keyListener);
+        }
+        if(mouseListenerDelegate != null) {
+            juikit.frame().removeMouseListener(mouseListenerDelegate);
+            juikit.frame().removeMouseMotionListener(mouseListenerDelegate);
+            juikit.frame().removeMouseWheelListener(mouseListenerDelegate);
         }
         running = false;
 
