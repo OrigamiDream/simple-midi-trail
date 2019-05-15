@@ -236,7 +236,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             graphics.fillRect(0, 0, juikit.width(), juikit.height());
 
             int indent = (juikit.width() - NOTE_WIDTH * 127) / 2;
-            int height = juikit.height() - juikit.data("ADDITIONAL_HEIGHT", int.class);
+            int height = juikit.height() - juikit.data(ADDITIONAL_HEIGHT, int.class);
             int scroll = juikit.data(SCROLL);
             double multiply = juikit.data(MULTIPLY);
             String formattedMultiply = juikit.data(MULTIPLY_FORMATTED);

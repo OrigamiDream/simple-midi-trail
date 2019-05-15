@@ -28,7 +28,6 @@ public class MIDITrail {
     public static final String SCROLL = "SCROLL";
     public static final String MULTIPLY = "MULT";
     public static final String MULTIPLY_FORMATTED = "MULT_FORMATTED";
-    
     public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
 
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
