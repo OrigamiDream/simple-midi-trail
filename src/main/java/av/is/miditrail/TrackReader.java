@@ -19,6 +19,7 @@ public class TrackReader {
 
     private final Map<Integer, List<Note>> tracks = new HashMap<>();
     private final List<Line> lines = new ArrayList<>();
+    private long tickFinish = 0L;
 
     public TrackReader(File file) throws InvalidMidiDataException, IOException {
         this.file = file;
@@ -98,9 +99,9 @@ public class TrackReader {
                             pendingNotes.clear();
                             break;
                     }
-                } else if(message instanceof MetaMessage && !signatureDefined.get()) {
+                } else if(message instanceof MetaMessage) {
                     MetaMessage metaMessage = (MetaMessage) message;
-                    if(metaMessage.getType() == 88) { // TIME SIGNATURE
+                    if(metaMessage.getType() == 0x58 && !signatureDefined.get()) { // TIME SIGNATURE
                         byte[] data = ((MetaMessage) message).getData();
 
                         TimeSignature timeSignature = new TimeSignature();
@@ -109,6 +110,8 @@ public class TrackReader {
                         timeSignature.denominator = 1 << (data[1] & 0xFF);
 
                         signatures.add(timeSignature);
+                    } else if(((MetaMessage) message).getType() == 0x2F) {
+                        tickFinish = Math.max(tickFinish, tick);
                     }
                 }
 
@@ -147,6 +150,10 @@ public class TrackReader {
                 }
             }
         }
+    }
+
+    public long getTickFinish() {
+        return tickFinish;
     }
 
     public List<Line> getLines() {

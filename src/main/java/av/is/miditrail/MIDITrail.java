@@ -1,7 +1,9 @@
 package av.is.miditrail;
 
 import av.is.miditrail.configurations.Configuration;
+import av.is.miditrail.configurations.Playlist;
 import av.is.miditrail.menus.MenuBarManager;
+import av.is.miditrail.playlists.PlaylistManager;
 import av.is.miditrail.screens.EmptyScreen;
 import av.is.miditrail.screens.ScreenManager;
 import av.is.miditrail.soundfonts.SoundfontManager;
@@ -29,6 +31,7 @@ public class MIDITrail {
     public static final String MULTIPLY = "MULT";
     public static final String MULTIPLY_FORMATTED = "MULT_FORMATTED";
     public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
+    public static final String END_OF_TRACK = "EOT";
 
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -43,15 +46,20 @@ public class MIDITrail {
         }
         Juikit juikit = Juikit.createFrame();
 
+        for(Playlist playlist : configuration.getPlaylists()) {
+            playlist.setId(PlaylistManager.ID_GENERATOR.getAndIncrement());
+        }
+
         if(juikit.macOS()) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
 
         SoundfontManager soundfontManager = new SoundfontManager(configuration);
+        PlaylistManager playlistManager = new PlaylistManager(configuration);
 
-        ScreenManager screenManager = new ScreenManager(soundfontManager);
+        ScreenManager screenManager = new ScreenManager(soundfontManager, playlistManager);
 
-        new MenuBarManager(juikit, screenManager, configuration, soundfontManager).init();
+        new MenuBarManager(juikit, screenManager, configuration, soundfontManager, playlistManager).init();
         
         int additionalHeight;
         if(juikit.windows()) {

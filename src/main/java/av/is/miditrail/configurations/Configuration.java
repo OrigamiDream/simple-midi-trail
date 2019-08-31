@@ -14,6 +14,7 @@ public class Configuration implements Serializable {
     private static final long serialVersionUID = 539993014345671716L;
 
     private List<SoundfontGroup> soundfontGroups = new ArrayList<>();
+    private List<Playlist> playlists = new ArrayList<>();
 
     private SoundfontGroup lastSoundfont;
 
@@ -30,6 +31,13 @@ public class Configuration implements Serializable {
 
     public void setLastSoundfont(SoundfontGroup lastSoundfont) {
         this.lastSoundfont = lastSoundfont;
+    }
+
+    public List<Playlist> getPlaylists() {
+        if(playlists == null) {
+            playlists = new ArrayList<>();
+        }
+        return playlists;
     }
 
     public void save() {

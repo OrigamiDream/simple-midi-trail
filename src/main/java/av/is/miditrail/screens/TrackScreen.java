@@ -1,6 +1,7 @@
 package av.is.miditrail.screens;
 
 import av.is.miditrail.*;
+import av.is.miditrail.configurations.Playlist;
 import av.is.miditrail.configurations.Soundfont;
 import av.is.miditrail.configurations.SoundfontGroup;
 import av.is.miditrail.soundfonts.SoundfontManager;
@@ -70,7 +71,14 @@ public class TrackScreen extends AbstractLoadingScreen {
     private AtomicReference<Image> pianoKeyboard = new AtomicReference<>();
     private AtomicBoolean pause = new AtomicBoolean(true);
 
+    private boolean withPlaylist;
+    private Playlist playlist;
+
     public TrackScreen(Juikit juikit, ScreenManager screenManager, File file) {
+        this(juikit, screenManager, file, null, false);
+    }
+
+    public TrackScreen(Juikit juikit, ScreenManager screenManager, File file, Playlist playlist, boolean withPlaylist) {
         super(juikit, screenManager);
 
         this.file = file;
@@ -87,6 +95,9 @@ public class TrackScreen extends AbstractLoadingScreen {
                 e.printStackTrace();
             }
         });
+
+        this.playlist = playlist;
+        this.withPlaylist = withPlaylist;
     }
 
     @Override
@@ -160,13 +171,32 @@ public class TrackScreen extends AbstractLoadingScreen {
         }
     }
 
+    public void setPause(boolean pause) {
+        this.pause.set(pause);
+
+        if(this.pause.get()) {
+            sequencer.stop();
+        } else {
+            sequencer.start();
+        }
+    }
+
     @Override
     void onLoad() {
+        juikit.data(END_OF_TRACK, false);
         juikit.data(MULTIPLY, 1d);
         juikit.data(MULTIPLY_FORMATTED, "1");
         new Thread(() -> {
             while(running) {
                 long tick = sequencer.getTickPosition();
+                if(tick >= reader.getTickFinish() && !pause.get() && withPlaylist) {
+                    Playlist next = screenManager.getPlaylistManager().getNextPlaylist(playlist);
+                    if(next != null) {
+                        screenManager.setScreen(new TrackScreen(juikit, screenManager, new File(next.getFilePath()), next, true));
+                        break;
+                    }
+                }
+
                 tick /= juikit.data(MULTIPLY, double.class);
                 juikit.data(SCROLL, (int) -tick);
             }
@@ -184,13 +214,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             public void keyReleased(KeyEvent e) {
                 if(e.getExtendedKeyCode() == 32 || e.getKeyCode() == 32) {
                     // SPACE
-                    pause.set(!pause.get());
-        
-                    if(pause.get()) {
-                        sequencer.stop();
-                    } else {
-                        sequencer.start();
-                    }
+                    setPause(!pause.get());
                 }
             }
         };
@@ -327,6 +351,9 @@ public class TrackScreen extends AbstractLoadingScreen {
                 graphics.drawString("PAUSE", 25, 75);
             }
         });
+        if(withPlaylist) {
+            setPause(false);
+        }
     }
 
     @Override
