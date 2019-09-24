@@ -7,7 +7,7 @@
     <groupId>studio.avis</groupId>
     <artifactId>miditrail</artifactId>
     <packaging>pom</packaging>
-    <version>1.4-rc4</version>
+    <version>1.4-rc5</version>
 
     <modules>
         <module>backend</module>
@@ -18,7 +18,7 @@
 
     <repositories>
         <repository>
-            <id>juikit</id>
+            <id>github</id>
             <url>https://maven.pkg.github.com/OrigamiDream</url>
         </repository>
     </repositories>
