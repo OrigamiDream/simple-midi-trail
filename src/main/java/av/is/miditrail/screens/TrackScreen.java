@@ -5,8 +5,8 @@ import av.is.miditrail.configurations.Playlist;
 import av.is.miditrail.configurations.Soundfont;
 import av.is.miditrail.configurations.SoundfontGroup;
 import av.is.miditrail.soundfonts.SoundfontManager;
-import avis.juikit.Juikit;
-import avis.juikit.internal.MouseListenerDelegate;
+import studio.avis.juikit.Juikit;
+import studio.avis.juikit.internal.MouseListenerDelegate;
 
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;

@@ -7,7 +7,7 @@ import av.is.miditrail.menus.soundfont.MenuSoundfont;
 import av.is.miditrail.playlists.PlaylistManager;
 import av.is.miditrail.screens.ScreenManager;
 import av.is.miditrail.soundfonts.SoundfontManager;
-import avis.juikit.Juikit;
+import studio.avis.juikit.Juikit;
 
 import javax.swing.*;
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package av.is.miditrail.screens;
 
-import avis.juikit.Juikit;
+import studio.avis.juikit.Juikit;
 
 import java.awt.*;
 

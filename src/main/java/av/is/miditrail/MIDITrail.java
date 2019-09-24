@@ -7,7 +7,7 @@ import av.is.miditrail.playlists.PlaylistManager;
 import av.is.miditrail.screens.EmptyScreen;
 import av.is.miditrail.screens.ScreenManager;
 import av.is.miditrail.soundfonts.SoundfontManager;
-import avis.juikit.Juikit;
+import studio.avis.juikit.Juikit;
 
 import javax.swing.*;
 import java.awt.*;
