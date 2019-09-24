@@ -1,7 +1,8 @@
 /.idea
-/target
+target
 *.iml
 dependency-reduced-pom.xml
 config.middata
 test-soundfonts
 test-midis
+runtime

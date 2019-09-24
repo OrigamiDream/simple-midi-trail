@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>miditrail</artifactId>
+        <groupId>studio.avis</groupId>
+        <version>1.4-rc0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>studio.avis.miditrail</groupId>
+    <artifactId>bootloader</artifactId>
+
+    <name>MIDITrail BootLoader</name>
+
+    <build>
+        <finalName>MIDITrail</finalName>
+        <resources>
+            <resource>
+                <directory>../backend/target</directory>
+                <includes>
+                    <include>backend.jar</include>
+                </includes>
+                <excludes>
+                    <exclude>classes</exclude>
+                    <exclude>generated-sources</exclude>
+                    <exclude>maven-archiver</exclude>
+                    <exclude>maven-status</exclude>
+                    <exclude>original-backend.jar</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>studio.avis.miditrail.bootloader.BootstrapMain</mainClass>
+                        </transformer>
+                    </transformers>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
