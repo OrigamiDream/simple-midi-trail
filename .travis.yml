@@ -1,8 +1,11 @@
 language: java
 
 before_install:
+  - cd ..
   - git clone https://github.com/OrigamiDream/juikit.git
   - cd juikit
+  - mvn clean install
+  - cd ../simple-midi-trail
   - mvn clean install
 
 script: ./mvnw clean package
