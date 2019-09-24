@@ -19,7 +19,7 @@ deploy:
   api_key:
     secure: LrqznqcBhs3kmlaQdAm+l1zI3VQywULbXk2xDR+7uSz0kmynmZVrLAWsnWV26NXnGd7jpHT5umXCzVaosUu+vYOvxG1v4HunPRrtQO+ppCLHHjkWonVq9eBH9xYYqz2hC7WcWmZ80lZTekw21zpeeBMnRuvcuBk7qsCW9Ki5f0F2B1oGLMbiIWseA0sJW72XBdeRO2PiHDbHQUmHSNVYDSx+xttv9IMdqq0PHm9FiPdy7lzoJOS6qpChCgQUi/TXJB0b34U5pjihh2Qsk4Lk+Ersxry2Iz0R+fv8EOzNxcxNa4yHgLRZItYD96PplmNchwlzbE3WEyF8EKlBfZriR9mEQMSD5u0JHM/pPiKIzAEjM9y9eT1c1l8/aE2h+CHU/kWl3R8mwuSnYDaLGgIchoKAo47MROVgsDqFAahmF4otnqAitSCI+ffnqCji8GIOIxyoChvmM363r0P0oh2ZxsIMQ7Grb0RonyGVQZ1S/hSCWgrcjmIrCeuVO5TZ8hKcIEDC86J1g3NUbL/K96qurYfhx/uWbQHdhBz+pscoB9aUFkb7+9G/5woY6bSg5fw0+ldVvdWr0KkOPkYkClAG4elOn8/O4T8zGKmwROUdnl7ZKrSLkeO1i17TAFHWoOIsCaCyWjYcMY9qh+QoRHj7jri9cN0hoN/Y4mm9cdY24NA=
   file_glob: true
-  file: /bootloader/target/MIDITrail.jar
+  file: bootloader/target/MIDITrail.jar
   skip_cleanup: true
   on:
     tags: true

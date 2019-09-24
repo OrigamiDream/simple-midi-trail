@@ -7,7 +7,7 @@
     <groupId>studio.avis</groupId>
     <artifactId>miditrail</artifactId>
     <packaging>pom</packaging>
-    <version>1.4-rc5</version>
+    <version>1.4-rc7</version>
 
     <modules>
         <module>backend</module>
