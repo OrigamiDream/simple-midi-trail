@@ -1,15 +1,26 @@
 package studio.avis.miditrail.bootloader;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BootstrapMain {
+
+    private static void extract(File file, String resourceUrl) throws IOException {
+        System.out.println("Extracting: " + resourceUrl);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        InputStream inputStream = BootstrapMain.class.getResourceAsStream(resourceUrl);
+
+        byte[] buffer = new byte[8192];
+        int read;
+
+        while((read = inputStream.read(buffer)) != -1) {
+            fileOutputStream.write(buffer, 0, read);
+        }
+    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         File file = new File("runtime");
@@ -18,18 +29,7 @@ public class BootstrapMain {
         }
 
         File backend = new File(file, "backend.jar");
-        if(!backend.exists()) {
-            System.out.println("Extracting backend jar...");
-            FileOutputStream fileOutputStream = new FileOutputStream(backend);
-            InputStream inputStream = BootstrapMain.class.getResourceAsStream("/backend.jar");
-
-            byte[] buffer = new byte[8192];
-            int read;
-
-            while((read = inputStream.read(buffer)) != -1) {
-                fileOutputStream.write(buffer, 0, read);
-            }
-        }
+        extract(backend, "/backend.jar");
 
         System.out.println("Launching backend");
         List<String> commands = new ArrayList<>(Arrays.asList("java", "-jar", "backend.jar"));
@@ -50,6 +50,13 @@ public class BootstrapMain {
             }
         }
         Process process = new ProcessBuilder(commands).directory(file).start();
+        Thread thread = new Thread(() -> {
+            Scanner scanner = new Scanner(process.getInputStream());
+            while(scanner.hasNextLine()) {
+                System.out.println(scanner.nextLine());
+            }
+        });
+        thread.start();
         int exitCode = process.waitFor();
         if(exitCode != 0) {
             System.out.println("Exit signal: " + exitCode);

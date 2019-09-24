@@ -12,17 +12,16 @@ import studio.avis.juikit.Juikit;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.util.Scanner;
 
 public class MIDITrail {
 
     public static final String CONFIGURATION_FILE_NAME = "config.middata";
 
     public static final int NOTE_WIDTH = 10;
-    public static final int DEFAULT_UI_INDENT = 50;
-    public static final int DEFAULT_UI_HEIGHT = 500;
+    private static final int DEFAULT_UI_INDENT = 50;
+    private static final int DEFAULT_UI_HEIGHT = 500;
 
-    public static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
+    static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
 
     public static final String DONE = "DONE";
     public static final String LOADING = "LOADING";
