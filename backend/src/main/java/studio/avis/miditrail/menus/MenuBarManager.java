@@ -3,6 +3,7 @@ package studio.avis.miditrail.menus;
 import studio.avis.miditrail.configurations.Configuration;
 import studio.avis.miditrail.menus.file.MenuFile;
 import studio.avis.miditrail.menus.playlist.MenuPlaylist;
+import studio.avis.miditrail.menus.preferences.MenuPreferences;
 import studio.avis.miditrail.menus.soundfont.MenuSoundfont;
 import studio.avis.miditrail.playlists.PlaylistManager;
 import studio.avis.miditrail.screens.ScreenManager;
@@ -33,6 +34,7 @@ public class MenuBarManager {
         this.menus.add(new MenuFile(this));
         this.menus.add(new MenuSoundfont(this));
         this.menus.add(new MenuPlaylist(this));
+        this.menus.add(new MenuPreferences(this));
     }
 
     public Juikit getJuikit() {

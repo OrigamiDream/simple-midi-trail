@@ -4,8 +4,10 @@ import studio.avis.miditrail.configurations.Configuration;
 import studio.avis.miditrail.configurations.Playlist;
 import studio.avis.miditrail.menus.MenuBarManager;
 import studio.avis.miditrail.playlists.PlaylistManager;
+import studio.avis.miditrail.preferences.PreferenceManager;
 import studio.avis.miditrail.screens.EmptyScreen;
 import studio.avis.miditrail.screens.ScreenManager;
+import studio.avis.miditrail.screens.TrackScreen;
 import studio.avis.miditrail.soundfonts.SoundfontManager;
 import studio.avis.juikit.Juikit;
 
@@ -21,7 +23,7 @@ public class MIDITrail {
     private static final int DEFAULT_UI_INDENT = 50;
     private static final int DEFAULT_UI_HEIGHT = 500;
 
-    static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
+    public static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
 
     public static final String DONE = "DONE";
     public static final String LOADING = "LOADING";
@@ -56,8 +58,9 @@ public class MIDITrail {
 
         SoundfontManager soundfontManager = new SoundfontManager(configuration);
         PlaylistManager playlistManager = new PlaylistManager(configuration);
+        PreferenceManager preferenceManager = new PreferenceManager(configuration);
 
-        ScreenManager screenManager = new ScreenManager(soundfontManager, playlistManager);
+        ScreenManager screenManager = new ScreenManager(soundfontManager, playlistManager, preferenceManager);
 
         new MenuBarManager(juikit, screenManager, configuration, soundfontManager, playlistManager).init();
         
@@ -78,8 +81,8 @@ public class MIDITrail {
         
         juikit.data(ADDITIONAL_HEIGHT, additionalHeight);
         juikit.data(SCROLL, 0);
-        juikit.data(MULTIPLY, 1d);
-        juikit.data(MULTIPLY_FORMATTED, "1");
+        juikit.data(MULTIPLY, configuration.getPreference().getMultiply());
+        juikit.data(MULTIPLY_FORMATTED, TrackScreen.DECIMAL_FORMAT.format(configuration.getPreference().getMultiply()));
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
 
         screenManager.setScreen(new EmptyScreen(juikit, screenManager));

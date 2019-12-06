@@ -18,6 +18,15 @@ public class Configuration implements Serializable {
 
     private SoundfontGroup lastSoundfont;
 
+    private Preference preference;
+
+    public Preference getPreference() {
+        if(preference == null) {
+            preference = new Preference();
+        }
+        return preference;
+    }
+
     public List<SoundfontGroup> getSoundfontGroups() {
         if(soundfontGroups == null) {
             soundfontGroups = new ArrayList<>();
@@ -40,7 +49,7 @@ public class Configuration implements Serializable {
         return playlists;
     }
 
-    public void save() {
+    public synchronized void save() {
         try(FileOutputStream fileOutputStream = new FileOutputStream(new File(CONFIGURATION_FILE_NAME));
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
 

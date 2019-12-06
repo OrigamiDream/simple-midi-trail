@@ -26,6 +26,10 @@ public class MenuItemAddPlaylist extends MenuItem<MenuPlaylist> {
 
                 if(dialog.getFiles() != null && dialog.getFiles().length > 0) {
                     for(File file : dialog.getFiles()) {
+                        if(!dialog.getFile().endsWith(".mid") && !dialog.getFile().endsWith(".midi")) {
+                            System.out.println("Invalid file format. Only '*.mid' and '*.midi' available.");
+                            continue;
+                        }
                         manager.getPlaylistManager().addPlaylist(file);
                     }
                     manager.refresh();

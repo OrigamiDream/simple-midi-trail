@@ -33,7 +33,7 @@ public class TrackScreen extends AbstractLoadingScreen {
 
     private static final String LOADING_TEXT = "Loading...";
 
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
+    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
     private static final Color[] COLORS = {
             new Color(135, 0, 0),
@@ -57,6 +57,12 @@ public class TrackScreen extends AbstractLoadingScreen {
             new Color(205, 0, 205)
     };
 
+    public static final int KEYBOARD_HEIGHT = 70;
+    public static final int SHARP_HEIGHT = 40;
+    public static final int NORMAL_HEIGHT = KEYBOARD_HEIGHT - SHARP_HEIGHT;
+    public static final int PIANO_MIN = 21;
+    public static final int PIANO_MAX = 108;
+
     private final File file;
 
     private TrackReader reader;
@@ -67,7 +73,6 @@ public class TrackScreen extends AbstractLoadingScreen {
     private Synthesizer synthesizer;
     private Sequencer sequencer;
 
-    private AtomicReference<Image> pianoKeyboard = new AtomicReference<>();
     private AtomicBoolean pause = new AtomicBoolean(true);
 
     private boolean withPlaylist;
@@ -109,13 +114,6 @@ public class TrackScreen extends AbstractLoadingScreen {
         if(reader != null) {
             reader.loadTrack();
         }
-        Image image = null;
-        try {
-            image = ImageIO.read(MIDITrail.class.getResourceAsStream("/image/keyboard.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        pianoKeyboard.set(image);
 
         try {
             MidiSystem.getSequencer(false);
@@ -183,8 +181,8 @@ public class TrackScreen extends AbstractLoadingScreen {
     @Override
     void onLoad() {
         juikit.data(END_OF_TRACK, false);
-        juikit.data(MULTIPLY, 1d);
-        juikit.data(MULTIPLY_FORMATTED, "1");
+        juikit.data(MULTIPLY, screenManager.getPreferenceManager().getMultiply());
+        juikit.data(MULTIPLY_FORMATTED, DECIMAL_FORMAT.format(screenManager.getPreferenceManager().getMultiply()));
         new Thread(() -> {
             while(running) {
                 long tick = sequencer.getTickPosition();
@@ -254,6 +252,8 @@ public class TrackScreen extends AbstractLoadingScreen {
                 multiply = Math.max(0.01, multiply);
                 juikit.data(MULTIPLY, multiply);
                 juikit.data(MULTIPLY_FORMATTED, DECIMAL_FORMAT.format(multiply));
+
+                screenManager.getPreferenceManager().setMultiply(multiply);
             }
         };
         juikit.mouseListener(mouseListenerDelegate);
@@ -330,7 +330,7 @@ public class TrackScreen extends AbstractLoadingScreen {
                 graphics.drawLine(0, y, juikit.width(), y);
             }
 
-            graphics.drawImage(pianoKeyboard.get(), indent + (NOTE_WIDTH * 21), height, (NOTE_WIDTH * 88), 70, juikit.panel());
+            drawKeyboard(graphics, indent, height, reader.getLowestKey(), reader.getHighestKey());
 
             for(int i = 0; i < pressedNotes.size(); i++) {
                 Note note = pressedNotes.get(i);
@@ -344,14 +344,57 @@ public class TrackScreen extends AbstractLoadingScreen {
             }
 
             graphics.setColor(Color.WHITE);
-            graphics.drawString("Notes: " + noteCount, 25, 35);
-            graphics.drawString("Multiply: " + formattedMultiply, 25, 55);
+
+            List<String> summary = new ArrayList<>();
+            summary.add("Notes: " + noteCount);
+            summary.add("Multiply: " + formattedMultiply);
             if(pause.get()) {
-                graphics.drawString("PAUSE", 25, 75);
+                summary.add("PAUSE");
             }
+            drawStrings(graphics, summary, 25, 35);
         });
         if(withPlaylist) {
             setPause(false);
+        }
+    }
+
+    private void drawKeyboard(Graphics graphics, int indent, int height, int min, int max) {
+        for(int i = min; i <= max; i++) {
+            int x = indent + (i + 1) * NOTE_WIDTH - NOTE_WIDTH;
+            int index = (i + 12) % KEYS.length;
+            if(KEYS[index] == 1) { // sharp
+                graphics.setColor(Color.BLACK);
+                graphics.fillRect(x, height, NOTE_WIDTH, SHARP_HEIGHT);
+                if(i < PIANO_MIN || i > PIANO_MAX) { // 20 + 87
+                    graphics.setColor(new Color(212, 212, 212));
+                } else {
+                    graphics.setColor(Color.WHITE);
+                }
+                graphics.fillRect(x, height + SHARP_HEIGHT, NOTE_WIDTH, NORMAL_HEIGHT);
+                graphics.setColor(Color.BLACK);
+
+                int lineX = x + (NOTE_WIDTH / 2);
+                graphics.drawLine(lineX, height + SHARP_HEIGHT, lineX, height + KEYBOARD_HEIGHT);
+
+                if(i == PIANO_MIN - 1) {
+                    graphics.setColor(Color.WHITE);
+                    graphics.fillRect(lineX + 1, height + SHARP_HEIGHT, (NOTE_WIDTH / 2) - 1, height + KEYBOARD_HEIGHT);
+                } else if(i == PIANO_MAX + 1) {
+                    graphics.setColor(Color.WHITE);
+                    graphics.fillRect(x, height + SHARP_HEIGHT, (NOTE_WIDTH / 2) - 1, height + KEYBOARD_HEIGHT);
+                }
+            } else {
+                if(i < PIANO_MIN || i > PIANO_MAX) { // 20 + 87
+                    graphics.setColor(new Color(212, 212, 212));
+                } else {
+                    graphics.setColor(Color.WHITE);
+                }
+                graphics.fillRect(x, height, NOTE_WIDTH, KEYBOARD_HEIGHT);
+                if(index == 5 || index == 0) { // Mi, Shi
+                    graphics.setColor(Color.BLACK);
+                    graphics.drawLine(x , height, x, height + KEYBOARD_HEIGHT);
+                }
+            }
         }
     }
 
@@ -381,5 +424,17 @@ public class TrackScreen extends AbstractLoadingScreen {
             synthesizer.close();
         }
         screenManager.getSoundfontManager().setSoundfontListener(null);
+    }
+
+    private void drawString(Graphics graphics, String str, int x, int y) {
+        if(screenManager.getPreferenceManager().isSummaryEnabled()) {
+            graphics.drawString(str, x, y);
+        }
+    }
+
+    private void drawStrings(Graphics graphics, List<String> strings, int x, int y) {
+        for(int i = 0; i < strings.size(); i++) {
+            drawString(graphics, strings.get(i), x, y + (20 * i));
+        }
     }
 }

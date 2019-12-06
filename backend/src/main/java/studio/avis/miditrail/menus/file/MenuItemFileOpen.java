@@ -25,6 +25,10 @@ public class MenuItemFileOpen extends MenuItem<MenuFile> {
                 dialog.setVisible(true);
 
                 if(dialog.getFile() != null) {
+                    if(!dialog.getFile().endsWith(".mid") && !dialog.getFile().endsWith(".midi")) {
+                        System.out.println("Invalid file format. Only '*.mid' and '*.midi' available.");
+                        return;
+                    }
                     manager.getScreenManager().setScreen(new TrackScreen(manager.getJuikit(), manager.getScreenManager(), new File(dialog.getDirectory() + dialog.getFile())));
                 }
             }

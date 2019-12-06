@@ -21,6 +21,9 @@ public class TrackReader {
     private final List<Line> lines = new ArrayList<>();
     private long tickFinish = 0L;
 
+    private int lowestKey = 108;
+    private int highestKey = 20;
+
     public TrackReader(File file) throws InvalidMidiDataException, IOException {
         this.file = file;
         this.sequence = MidiSystem.getSequence(file);
@@ -63,6 +66,14 @@ public class TrackReader {
 
                     int key = shortMessage.getData1();
                     int velocity = shortMessage.getData2();
+
+                    if(key < lowestKey) {
+                        lowestKey = key;
+                    }
+
+                    if(key > highestKey) {
+                        highestKey = key;
+                    }
 
                     Runnable noteOn = () -> {
                         Note note = new Note(tick, key);
@@ -166,5 +177,13 @@ public class TrackReader {
 
     public Sequence getSequence() {
         return sequence;
+    }
+
+    public int getLowestKey() {
+        return lowestKey;
+    }
+
+    public int getHighestKey() {
+        return highestKey;
     }
 }

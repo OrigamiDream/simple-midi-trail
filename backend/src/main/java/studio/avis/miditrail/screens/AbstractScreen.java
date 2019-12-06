@@ -4,6 +4,7 @@ import studio.avis.juikit.Juikit;
 import studio.avis.miditrail.MIDITrail;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 public abstract class AbstractScreen {
 
@@ -20,6 +21,10 @@ public abstract class AbstractScreen {
     public abstract void enterPage();
 
     public abstract void leavePage();
+
+    public boolean isCommandPressed(KeyEvent event) {
+        return juikit.macOS() && event.isMetaDown() || !juikit.macOS() && event.isControlDown();
+    }
 
     public int textWidth(Graphics graphics, String text) {
         return graphics.getFontMetrics(graphics.getFont()).stringWidth(text);

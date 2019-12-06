@@ -26,6 +26,10 @@ public class MenuItemSoundfontAdd extends MenuItem<MenuSoundfont> {
 
                 if(dialog.getFiles() != null && dialog.getFiles().length > 0) {
                     for(File file : dialog.getFiles()) {
+                        if(!dialog.getFile().endsWith(".mid") && !dialog.getFile().endsWith(".midi")) {
+                            System.out.println("Invalid file format. Only '*.mid' and '*.midi' available.");
+                            continue;
+                        }
                         manager.getSoundfontManager().addSoundfontFile(file);
                     }
                     manager.refresh();
