@@ -67,17 +67,17 @@ public class TrackReader {
                     int key = shortMessage.getData1();
                     int velocity = shortMessage.getData2();
 
-                    if(key < lowestKey) {
-                        lowestKey = key;
-                    }
-
-                    if(key > highestKey) {
-                        highestKey = key;
-                    }
-
                     Runnable noteOn = () -> {
                         Note note = new Note(tick, key);
                         pendingNotes.put(key, note);
+
+                        if(key < lowestKey) {
+                            lowestKey = key;
+                        }
+
+                        if(key > highestKey) {
+                            highestKey = key;
+                        }
                     };
 
                     Runnable noteOff = () -> {
