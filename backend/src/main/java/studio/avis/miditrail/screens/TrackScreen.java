@@ -361,7 +361,7 @@ public class TrackScreen extends AbstractLoadingScreen {
     private void drawKeyboard(Graphics graphics, int indent, int height, int min, int max) {
         for(int i = min; i <= max; i++) {
             int x = indent + (i + 1) * NOTE_WIDTH - NOTE_WIDTH;
-            int index = (i + 12) % KEYS.length;
+            int index = (i + KEYS.length) % KEYS.length;
             if(KEYS[index] == 1) { // sharp
                 graphics.setColor(Color.BLACK);
                 graphics.fillRect(x, height, NOTE_WIDTH, SHARP_HEIGHT);

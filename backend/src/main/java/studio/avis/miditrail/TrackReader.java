@@ -21,8 +21,8 @@ public class TrackReader {
     private final List<Line> lines = new ArrayList<>();
     private long tickFinish = 0L;
 
-    private int lowestKey = 108;
-    private int highestKey = 20;
+    private int lowestKey = 21;
+    private int highestKey = 108;
 
     public TrackReader(File file) throws InvalidMidiDataException, IOException {
         this.file = file;
