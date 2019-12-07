@@ -46,7 +46,7 @@ public class BootstrapMain {
                 }
             } catch(Exception ignored) {
                 // macOS High Sierra or under would cause exception because there is no system parameter 'AppleInterfaceStyle'
-                // But, the happening does not tested
+                // But, the situation had not not been tested
             }
         }
         Process process = new ProcessBuilder(commands).directory(file).start();
