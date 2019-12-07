@@ -28,9 +28,9 @@ Tap **space** key, the magnificent music is now played and you enjoy the beautif
 - **Space** - Play or stop playing MIDI file
 
 ## Screenshots
-![Preview1](https://github.com/OrigamiDream/simple-midi-trail/tree/master/images/prev1.png)
+![Preview1](https://github.com/OrigamiDream/simple-midi-trail/blob/master/images/prev1.png)
 
-![Preview2](https://github.com/OrigamiDream/simple-midi-trail/tree/master/images/prev2.png)
+![Preview2](https://github.com/OrigamiDream/simple-midi-trail/blob/master/images/prev2.png)
 
 
 ## Build
