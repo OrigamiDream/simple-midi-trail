@@ -101,6 +101,11 @@ public class SoundfontManager {
     }
 
     public void setSoundfontListener(SoundfontListener soundfontListener) {
+        if(soundfontListener == null) {
+            System.out.println("Unregistering soundfont delegate...");
+        } else {
+            System.out.println("Registering new soundfont delegate...");
+        }
         this.soundfontListener = soundfontListener;
     }
 }

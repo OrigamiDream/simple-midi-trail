@@ -423,7 +423,6 @@ public class TrackScreen extends AbstractLoadingScreen {
         if(synthesizer != null) {
             synthesizer.close();
         }
-        screenManager.getSoundfontManager().setSoundfontListener(null);
     }
 
     private void drawString(Graphics graphics, String str, int x, int y) {
