@@ -14,13 +14,20 @@
         <module>bootloader</module>
     </modules>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <name>MIDITrail</name>
 
     <dependencies>
         <dependency>
-            <groupId>studio.avis</groupId>
+            <groupId>com.github.OrigamiDream</groupId>
             <artifactId>juikit</artifactId>
-            <version>2.0</version>
+            <version>master-82379d5293-1</version>
         </dependency>
     </dependencies>
 </project>

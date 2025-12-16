@@ -30,7 +30,7 @@ public class PreferenceManager {
         });
         thread.setName("MIDI Trail dequeue processor");
         thread.setDaemon(true);
-        thread.start();;
+        thread.start();
     }
 
     public double getMultiply() {
@@ -38,8 +38,8 @@ public class PreferenceManager {
     }
 
     public void setMultiply(double multiply) {
-        needRefresh.set(true);
         configuration.getPreference().setMultiply(multiply);
+        needRefresh.set(true);
     }
 
     public boolean isSummaryEnabled() {
@@ -47,7 +47,7 @@ public class PreferenceManager {
     }
 
     public void setSummary(boolean summary) {
-        needRefresh.set(true);
         configuration.getPreference().setSummary(summary);
+        needRefresh.set(true);
     }
 }

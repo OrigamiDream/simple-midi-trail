@@ -33,7 +33,6 @@ public class ScreenManager {
         if(screen != null) {
             screen.leavePage();
         }
-
         screen = newScreen;
 
         if(screen != null) {

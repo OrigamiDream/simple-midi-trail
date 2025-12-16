@@ -1,6 +1,8 @@
 package studio.avis.miditrail.screens;
 
 import studio.avis.juikit.Juikit;
+import studio.avis.juikit.internal.JuikitView;
+import studio.avis.miditrail.MIDITrail;
 
 import java.awt.*;
 
@@ -8,18 +10,26 @@ public class EmptyScreen extends AbstractScreen {
 
     private static final String EMPTY_TEXT = "No MIDI";
 
+    private final Font bravuraTextFont;
+
     public EmptyScreen(Juikit juikit, ScreenManager screenManager) {
         super(juikit, screenManager);
+
+        this.bravuraTextFont = juikit.data(MIDITrail.MUSICAL_FONT_TEXT);
     }
 
     @Override
     public void enterPage() {
-        juikit.painter((uikit, graphics) -> {
-            graphics.setColor(Color.BLACK);
-            graphics.fillRect(0, 0, juikit.width(), juikit.height());
+        juikit.painter((juikitView, g) -> {
+            Graphics2D graphics = (Graphics2D) g;
 
-            int height = uikit.height();
-            int width = uikit.width();
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            graphics.setColor(Color.BLACK);
+            graphics.fillRect(0, 0, juikitView.width(), juikitView.height());
+
+            int height = juikitView.height();
+            int width = juikitView.width();
 
             graphics.setFont(new Font(graphics.getFont().getName(), Font.BOLD, 40));
             FontMetrics fontMetrics = graphics.getFontMetrics(graphics.getFont());
@@ -34,9 +44,9 @@ public class EmptyScreen extends AbstractScreen {
 
     @Override
     public void leavePage() {
-        juikit.painter((uikit, graphics) -> {
+        juikit.painter((juikitView, graphics) -> {
             graphics.setColor(Color.BLACK);
-            graphics.fillRect(0, 0, juikit.width(), juikit.height());
+            graphics.fillRect(0, 0, juikitView.width(), juikitView.height());
         });
     }
 }

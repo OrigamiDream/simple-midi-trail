@@ -2,6 +2,8 @@ package studio.avis.miditrail.screens;
 
 import studio.avis.juikit.Juikit;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractLoadingScreen extends AbstractScreen {
@@ -23,7 +25,7 @@ public abstract class AbstractLoadingScreen extends AbstractScreen {
         thread.setDaemon(true);
         thread.start();
 
-        juikit.afterPainter((uikit, graphics) -> {
+        juikit.afterPainter((juikitView, graphics) -> {
             if(isDone()) {
                 return;
             }

@@ -24,16 +24,21 @@ public class MIDITrail {
     private static final int DEFAULT_UI_HEIGHT = 500;
 
     public static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
+    public static final int[] KEY_SCALE = { 0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6 };
+    public static final int KEY_C_MAJOR = 60;
 
     public static final String DONE = "DONE";
     public static final String LOADING = "LOADING";
     public static final String OPACITY = "OPACITY";
     public static final String RUNNING = "RUNNING";
+    public static final String TICK = "TICK";
     public static final String SCROLL = "SCROLL";
     public static final String MULTIPLY = "MULT";
     public static final String MULTIPLY_FORMATTED = "MULT_FORMATTED";
     public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
     public static final String END_OF_TRACK = "EOT";
+    public static final String MUSICAL_FONT_TEXT = "FONT_TEXT";
+    public static final String MUSICAL_FONT = "FONT";
 
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException, IOException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -68,7 +73,7 @@ public class MIDITrail {
         if(juikit.windows()) {
             additionalHeight = 130;
         } else {
-            additionalHeight = 90;
+            additionalHeight = 70;
         }
 
         juikit.title("MIDI Trail")
@@ -80,10 +85,20 @@ public class MIDITrail {
                 .visibility(true);
         
         juikit.data(ADDITIONAL_HEIGHT, additionalHeight);
+        juikit.data(TICK, 0L);
         juikit.data(SCROLL, 0);
         juikit.data(MULTIPLY, configuration.getPreference().getMultiply());
         juikit.data(MULTIPLY_FORMATTED, TrackScreen.DECIMAL_FORMAT.format(configuration.getPreference().getMultiply()));
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
+
+        try {
+            Font bravuraText = Font.createFont(Font.PLAIN, MIDITrail.class.getResourceAsStream("/BravuraText.otf"));
+            Font bravura = Font.createFont(Font.PLAIN, MIDITrail.class.getResourceAsStream("/Bravura.otf"));
+            juikit.data(MUSICAL_FONT_TEXT, bravuraText);
+            juikit.data(MUSICAL_FONT, bravura);
+        } catch (FontFormatException e) {
+            e.printStackTrace();
+        }
 
         screenManager.setScreen(new EmptyScreen(juikit, screenManager));
     }
