@@ -21,7 +21,7 @@ public class MIDITrail {
 
     public static final int NOTE_WIDTH = 10;
     private static final int DEFAULT_UI_INDENT = 50;
-    private static final int DEFAULT_UI_HEIGHT = 500;
+    private static final int DEFAULT_UI_HEIGHT = 800;
 
     public static final int[] KEYS = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
     public static final int[] KEY_SCALE = { 0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6 };
@@ -37,8 +37,6 @@ public class MIDITrail {
     public static final String MULTIPLY_FORMATTED = "MULT_FORMATTED";
     public static final String ADDITIONAL_HEIGHT = "ADDITIONAL_HEIGHT";
     public static final String END_OF_TRACK = "EOT";
-    public static final String MUSICAL_FONT_TEXT = "FONT_TEXT";
-    public static final String MUSICAL_FONT = "FONT";
 
     public static void main(String[] args) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException, IOException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -91,16 +89,13 @@ public class MIDITrail {
         juikit.data(MULTIPLY_FORMATTED, TrackScreen.DECIMAL_FORMAT.format(configuration.getPreference().getMultiply()));
         juikit.data(LOADING, 0).data(OPACITY, 0).data(DONE, true).data(RUNNING, false);
 
-        try {
-            Font bravuraText = Font.createFont(Font.PLAIN, MIDITrail.class.getResourceAsStream("/BravuraText.otf"));
-            Font bravura = Font.createFont(Font.PLAIN, MIDITrail.class.getResourceAsStream("/Bravura.otf"));
-            juikit.data(MUSICAL_FONT_TEXT, bravuraText);
-            juikit.data(MUSICAL_FONT, bravura);
-        } catch (FontFormatException e) {
-            e.printStackTrace();
+        if (args.length >= 2 && args[0].equals("--midi")) {
+            File midi = new File(args[1]);
+            if (!midi.isFile()) throw new FileNotFoundException(midi.getAbsolutePath());
+            screenManager.setScreen(new TrackScreen(juikit, screenManager, midi));
+        } else {
+            screenManager.setScreen(new EmptyScreen(juikit, screenManager));
         }
-
-        screenManager.setScreen(new EmptyScreen(juikit, screenManager));
     }
 
 }

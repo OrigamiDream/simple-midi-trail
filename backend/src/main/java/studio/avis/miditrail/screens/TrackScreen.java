@@ -37,7 +37,7 @@ public class TrackScreen extends AbstractLoadingScreen {
     private TrackReader reader;
     private KeyListener keyListener;
     private MouseListenerDelegate mouseListenerDelegate;
-    private boolean running = false;
+    private volatile boolean running = false;
 
     private Synthesizer synthesizer;
     private Sequencer sequencer;
@@ -90,6 +90,7 @@ public class TrackScreen extends AbstractLoadingScreen {
     void asyncLoad() {
         if(reader != null) {
             reader.loadTrack();
+            ((TrackSheetView) sheetView).prepare();
         }
 
         loadMidiSystem();
@@ -206,6 +207,12 @@ public class TrackScreen extends AbstractLoadingScreen {
                 tick /= juikit.data(MULTIPLY, double.class);
                 juikit.data(TICK, sequencer.getTickPosition());
                 juikit.data(SCROLL, (int) -tick);
+                try {
+                    Thread.sleep(8L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }).start();
         new Thread(() -> {

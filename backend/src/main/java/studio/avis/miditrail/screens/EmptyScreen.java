@@ -1,8 +1,6 @@
 package studio.avis.miditrail.screens;
 
 import studio.avis.juikit.Juikit;
-import studio.avis.juikit.internal.JuikitView;
-import studio.avis.miditrail.MIDITrail;
 
 import java.awt.*;
 
@@ -10,12 +8,8 @@ public class EmptyScreen extends AbstractScreen {
 
     private static final String EMPTY_TEXT = "No MIDI";
 
-    private final Font bravuraTextFont;
-
     public EmptyScreen(Juikit juikit, ScreenManager screenManager) {
         super(juikit, screenManager);
-
-        this.bravuraTextFont = juikit.data(MIDITrail.MUSICAL_FONT_TEXT);
     }
 
     @Override

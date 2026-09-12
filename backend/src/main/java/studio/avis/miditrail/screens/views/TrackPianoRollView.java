@@ -56,7 +56,7 @@ public class TrackPianoRollView extends TrackView {
     }
 
     public int getPianoRollHorizontalStartPoint(JuikitView view) {
-        return (int) (view.height() * 0.5);
+        return (int) (view.height() * TrackSheetView.HEIGHT_FRACTION);
     }
 
     @Override
