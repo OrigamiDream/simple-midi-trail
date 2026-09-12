@@ -1,17 +1,16 @@
 package studio.avis.miditrail.screens;
 
-import studio.avis.miditrail.Line;
-import studio.avis.miditrail.MIDITrail;
-import studio.avis.miditrail.Note;
+import studio.avis.juikit.Juikit;
+import studio.avis.juikit.internal.MouseListenerDelegate;
 import studio.avis.miditrail.TrackReader;
 import studio.avis.miditrail.configurations.Playlist;
 import studio.avis.miditrail.configurations.Soundfont;
 import studio.avis.miditrail.configurations.SoundfontGroup;
+import studio.avis.miditrail.screens.views.TrackPianoRollView;
+import studio.avis.miditrail.screens.views.TrackSheetView;
+import studio.avis.miditrail.screens.views.TrackView;
 import studio.avis.miditrail.soundfonts.SoundfontManager;
-import studio.avis.juikit.Juikit;
-import studio.avis.juikit.internal.MouseListenerDelegate;
 
-import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -23,60 +22,34 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static studio.avis.miditrail.MIDITrail.*;
 
 public class TrackScreen extends AbstractLoadingScreen {
 
     private static final String LOADING_TEXT = "Loading...";
-
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
-
-    private static final Color[] COLORS = {
-            new Color(135, 0, 0),
-            new Color(135, 104, 0),
-            new Color(135, 135, 0),
-            new Color(0, 135, 0),
-            new Color(0, 0, 135),
-            new Color(0, 135, 135),
-            new Color(135, 88, 88),
-            new Color(135, 0, 135)
-    };
-
-    private static final Color[] PRESSED_COLORS = {
-            new Color(205, 0, 0),
-            new Color(205, 160, 0),
-            new Color(205, 205, 0),
-            new Color(0, 205, 0),
-            new Color(0, 0, 205),
-            new Color(0, 205, 205),
-            new Color(205, 140, 140),
-            new Color(205, 0, 205)
-    };
-
-    public static final int KEYBOARD_HEIGHT = 70;
-    public static final int SHARP_HEIGHT = 40;
-    public static final int NORMAL_HEIGHT = KEYBOARD_HEIGHT - SHARP_HEIGHT;
-    public static final int PIANO_MIN = 21;
-    public static final int PIANO_MAX = 108;
 
     private final File file;
 
     private TrackReader reader;
     private KeyListener keyListener;
     private MouseListenerDelegate mouseListenerDelegate;
-    private boolean running = false;
+    private volatile boolean running = false;
 
     private Synthesizer synthesizer;
     private Sequencer sequencer;
 
-    private AtomicBoolean pause = new AtomicBoolean(true);
+    private final AtomicBoolean pause = new AtomicBoolean(true);
+    private final AtomicInteger movementQueue = new AtomicInteger(0);
 
-    private boolean withPlaylist;
-    private Playlist playlist;
+    private final boolean withPlaylist;
+    private final Playlist playlist;
+
+    private final TrackView pianoRollView;
+    private final TrackView sheetView;
 
     public TrackScreen(Juikit juikit, ScreenManager screenManager, File file) {
         this(juikit, screenManager, file, null, false);
@@ -92,6 +65,10 @@ public class TrackScreen extends AbstractLoadingScreen {
         } catch (InvalidMidiDataException | IOException e) {
             e.printStackTrace();
         }
+
+        sheetView = new TrackSheetView(reader);
+        pianoRollView = new TrackPianoRollView(reader, this, screenManager);
+
         screenManager.getSoundfontManager().setSoundfontListener(newSoundfont -> {
             try {
                 refreshSoundfontGroup(newSoundfont);
@@ -113,8 +90,13 @@ public class TrackScreen extends AbstractLoadingScreen {
     void asyncLoad() {
         if(reader != null) {
             reader.loadTrack();
+            ((TrackSheetView) sheetView).prepare();
         }
 
+        loadMidiSystem();
+    }
+
+    private void loadMidiSystem() {
         try {
             MidiSystem.getSequencer(false);
             synthesizer = MidiSystem.getSynthesizer();
@@ -122,17 +104,33 @@ public class TrackScreen extends AbstractLoadingScreen {
 
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
+            if(!sequencer.isOpen()) {
+                System.out.println("Failed to open sequencer... Reattempt to open...");
+                sequencer.open();
+            }
             sequencer.getTransmitter().setReceiver(synthesizer.getReceiver());
+//            for(Track track : reader.getSequence().getTracks()) {
+//                for(int i = 0; i < track.size(); i++) {
+//                    MidiEvent event = track.get(i);
+//                    if(event.getMessage() instanceof ShortMessage) {
+//                        ShortMessage shortMessage = (ShortMessage) event.getMessage();
+//                        if(shortMessage.getCommand() == ShortMessage.NOTE_ON) {
+//                            if(!reader.findNoteEquivalent(shortMessage.getChannel(), event.getTick(), shortMessage.getData1())) {
+//                                try {
+//                                    shortMessage.setMessage(shortMessage.getCommand(), shortMessage.getChannel(), shortMessage.getData1(), 0);
+//                                } catch (InvalidMidiDataException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
             sequencer.setSequence(reader.getSequence());
+//            sequencer.setTempoFactor(2.0f);
 
             refreshSoundfontGroup(screenManager.getSoundfontManager().getCurrentSoundfont());
         } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Thread.sleep(2000L);
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -169,6 +167,9 @@ public class TrackScreen extends AbstractLoadingScreen {
     }
 
     public void setPause(boolean pause) {
+        if(!running) {
+            return;
+        }
         this.pause.set(pause);
 
         if(this.pause.get()) {
@@ -176,6 +177,14 @@ public class TrackScreen extends AbstractLoadingScreen {
         } else {
             sequencer.start();
         }
+    }
+
+    public boolean isPaused() {
+        return pause.get();
+    }
+
+    private boolean hasFinished() {
+        return juikit.data(END_OF_TRACK);
     }
 
     @Override
@@ -186,7 +195,8 @@ public class TrackScreen extends AbstractLoadingScreen {
         new Thread(() -> {
             while(running) {
                 long tick = sequencer.getTickPosition();
-                if(tick >= reader.getTickFinish() && !pause.get() && withPlaylist) {
+                juikit.data(END_OF_TRACK, tick >= sequencer.getTickLength());
+                if(tick >= sequencer.getTickLength() && !pause.get() && withPlaylist) {
                     Playlist next = screenManager.getPlaylistManager().getNextPlaylist(playlist);
                     if(next != null) {
                         screenManager.setScreen(new TrackScreen(juikit, screenManager, new File(next.getFilePath()), next, true));
@@ -195,7 +205,32 @@ public class TrackScreen extends AbstractLoadingScreen {
                 }
 
                 tick /= juikit.data(MULTIPLY, double.class);
+                juikit.data(TICK, sequencer.getTickPosition());
                 juikit.data(SCROLL, (int) -tick);
+                try {
+                    Thread.sleep(8L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }).start();
+        new Thread(() -> {
+            while(running) {
+                try {
+                    Thread.sleep(5L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                int ticks;
+                if(movementQueue.get() > 0) {
+                    ticks = movementQueue.decrementAndGet();
+                } else if(movementQueue.get() < 0) {
+                    ticks = movementQueue.incrementAndGet();
+                } else {
+                    continue;
+                }
+                moveActual(ticks);
             }
         }).start();
         keyListener = new KeyListener() {
@@ -205,6 +240,13 @@ public class TrackScreen extends AbstractLoadingScreen {
 
             @Override
             public void keyPressed(KeyEvent e) {
+                if(e.getExtendedKeyCode() == 37 || e.getKeyCode() == 37) {
+                    // LEFT ARROW
+                    movePosition(-50, false, false);
+                } else if(e.getExtendedKeyCode() == 39 || e.getKeyCode() == 39) {
+                    // RIGHT ARROW
+                    movePosition(50, false, false);
+                }
             }
 
             @Override
@@ -216,6 +258,7 @@ public class TrackScreen extends AbstractLoadingScreen {
             }
         };
         juikit.keyListener(keyListener);
+        juikit.panel().requestFocus();
         mouseListenerDelegate = new MouseListenerDelegate() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -248,161 +291,63 @@ public class TrackScreen extends AbstractLoadingScreen {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 double multiply = juikit.data(MULTIPLY);
-                multiply += (-e.getWheelRotation() / 100d);
-                multiply = Math.max(0.01, multiply);
-                juikit.data(MULTIPLY, multiply);
-                juikit.data(MULTIPLY_FORMATTED, DECIMAL_FORMAT.format(multiply));
+                if(e.isShiftDown()) {
+                    movePosition((long) (-e.getWheelRotation() / multiply * 50), true, true);
+                } else {
+                    multiply += (-e.getWheelRotation() / 100d);
+                    multiply = Math.max(0.01, multiply);
+                    juikit.data(MULTIPLY, multiply);
+                    juikit.data(MULTIPLY_FORMATTED, DECIMAL_FORMAT.format(multiply));
 
-                screenManager.getPreferenceManager().setMultiply(multiply);
+                    screenManager.getPreferenceManager().setMultiply(multiply);
+                }
             }
         };
         juikit.mouseListener(mouseListenerDelegate);
-        juikit.painter((juikit, graphics) -> {
-            graphics.setColor(Color.BLACK);
-            graphics.fillRect(0, 0, juikit.width(), juikit.height());
-
-            int indent = (juikit.width() - NOTE_WIDTH * 127) / 2;
-            int height = juikit.height() - juikit.data(ADDITIONAL_HEIGHT, int.class);
-            int scroll = juikit.data(SCROLL);
-            double multiply = juikit.data(MULTIPLY);
-            String formattedMultiply = juikit.data(MULTIPLY_FORMATTED);
-
-            graphics.setColor(Color.BLACK);
-            graphics.fillRect(0, 0, juikit.width(), juikit.height());
-
-            int noteCount = 0;
-
-            List<Note> pressedNotes = new ArrayList<>();
-            for(Map.Entry<Integer, List<Note>> entry : reader.getTracks().entrySet()) {
-                int trackId = entry.getKey();
-
-                List<Note> notes = entry.getValue();
-                for(int i = 0; i < notes.size(); i++) {
-                    Note note = notes.get(i);
-
-                    long fromTick = note.getFromTick();
-                    long endTick = note.getEndTick();
-
-                    fromTick /= multiply;
-                    endTick /= multiply;
-
-                    long fromInWindow = fromTick + scroll;
-                    long endInWindow = endTick + scroll;
-
-                    boolean beforePassthrough = fromInWindow > juikit.height();
-                    boolean afterPassthrough = endInWindow < 0;
-                    boolean wayPassthrough = fromInWindow < 0;
-
-                    if(wayPassthrough) {
-                        noteCount++;
-                    }
-
-                    if(beforePassthrough || afterPassthrough) {
-                        continue;
-                    }
-
-                    boolean pressed = -scroll > fromTick && -scroll < endTick;
-
-                    Color color;
-                    if(pressed) {
-                        color = PRESSED_COLORS[trackId % PRESSED_COLORS.length];
-                        note.setPressedColor(color);
-                    } else {
-                        color = COLORS[trackId % COLORS.length];
-                        note.setColor(color);
-                    }
-
-                    graphics.setColor(color);
-
-                    int yDiff = (int) (endTick - fromTick);
-                    graphics.fillRect(indent + note.getKey() * NOTE_WIDTH, height - (int) (fromTick + scroll) - yDiff, NOTE_WIDTH, yDiff);
-
-                    if(pressed) {
-                        pressedNotes.add(note);
-                    }
-                }
-            }
-
-            graphics.setColor(Color.DARK_GRAY);
-            graphics.drawLine(0, height, juikit.width(), height);
-            for(Line line : reader.getLines()) {
-                int y = height - (int) (line.getTick() / multiply + scroll);
-                graphics.drawLine(0, y, juikit.width(), y);
-            }
-
-            drawKeyboard(graphics, indent, height, reader.getLowestKey(), reader.getHighestKey());
-
-            for(int i = 0; i < pressedNotes.size(); i++) {
-                Note note = pressedNotes.get(i);
-
-                graphics.setColor(note.getPressedColor());
-                if(note.isSharp()) {
-                    graphics.fillRect((indent + note.getKey() * NOTE_WIDTH) + 1, height + 1, NOTE_WIDTH - 2, 37);
-                } else {
-                    graphics.fillRect((indent + note.getKey() * NOTE_WIDTH) + 1, height + 41, NOTE_WIDTH - 2, 25);
-                }
-            }
-
-            graphics.setColor(Color.WHITE);
-
-            List<String> summary = new ArrayList<>();
-            summary.add("Notes: " + noteCount);
-            summary.add("Multiply: " + formattedMultiply);
-            if(pause.get()) {
-                summary.add("PAUSE");
-            }
-            drawStrings(graphics, summary, 25, 35);
+        juikit.painter((juikitView, graphics) -> {
+            pianoRollView.draw(juikitView, graphics);
+            sheetView.draw(juikitView, graphics);
         });
+
         if(withPlaylist) {
             setPause(false);
         }
     }
 
-    private void drawKeyboard(Graphics graphics, int indent, int height, int min, int max) {
-        for(int i = min; i <= max; i++) {
-            int x = indent + (i + 1) * NOTE_WIDTH - NOTE_WIDTH;
-            int index = (i + KEYS.length) % KEYS.length;
-            if(KEYS[index] == 1) { // sharp
-                graphics.setColor(Color.BLACK);
-                graphics.fillRect(x, height, NOTE_WIDTH, SHARP_HEIGHT);
-                if(i < PIANO_MIN || i > PIANO_MAX) { // 20 + 87
-                    graphics.setColor(new Color(212, 212, 212));
-                } else {
-                    graphics.setColor(Color.WHITE);
-                }
-                graphics.fillRect(x, height + SHARP_HEIGHT, NOTE_WIDTH, NORMAL_HEIGHT);
-                graphics.setColor(Color.BLACK);
-
-                int lineX = x + (NOTE_WIDTH / 2);
-                graphics.drawLine(lineX, height + SHARP_HEIGHT, lineX, height + KEYBOARD_HEIGHT);
-
-                if(i == PIANO_MIN - 1) {
-                    graphics.setColor(Color.WHITE);
-                    graphics.fillRect(lineX + 1, height + SHARP_HEIGHT, (NOTE_WIDTH / 2) - 1, height + KEYBOARD_HEIGHT);
-                } else if(i == PIANO_MAX + 1) {
-                    graphics.setColor(Color.WHITE);
-                    graphics.fillRect(x, height + SHARP_HEIGHT, (NOTE_WIDTH / 2) - 1, height + KEYBOARD_HEIGHT);
-                }
-            } else {
-                if(i < PIANO_MIN || i > PIANO_MAX) { // 20 + 87
-                    graphics.setColor(new Color(212, 212, 212));
-                } else {
-                    graphics.setColor(Color.WHITE);
-                }
-                graphics.fillRect(x, height, NOTE_WIDTH, KEYBOARD_HEIGHT);
-                if(index == 5 || index == 0) { // Mi, Shi
-                    graphics.setColor(Color.BLACK);
-                    graphics.drawLine(x , height, x, height + KEYBOARD_HEIGHT);
-                }
+    private void movePosition(long ticks, boolean force, boolean scroll) {
+        if(!scroll) {
+            if(movementQueue.get() != 0 && !force) {
+                return;
             }
+            movementQueue.set(movementQueue.get() + (int) ticks);
+        } else {
+            moveActual(ticks);
         }
+    }
+
+    private void moveActual(long ticks) {
+        if(!running) {
+            return;
+        }
+        long maxPosition = sequencer.getTickLength();
+        long currentPosition = sequencer.getTickPosition();
+
+        currentPosition = Math.max(0, Math.min(maxPosition, currentPosition + ticks));
+        if(currentPosition == 0 || currentPosition == maxPosition) {
+            movementQueue.set(0);
+        }
+        sequencer.setTickPosition(currentPosition);
+
+        currentPosition /= juikit.data(MULTIPLY, double.class);
+        juikit.data(TICK, currentPosition);
+        juikit.data(SCROLL, (int) -currentPosition);
     }
 
     @Override
     public void leavePage() {
-        juikit.painter((uikit, graphics) -> {
+        juikit.painter((juikitView, graphics) -> {
             graphics.setColor(Color.BLACK);
-            graphics.fillRect(0, 0, juikit.width(), juikit.height());
+            graphics.fillRect(0, 0, juikitView.width(), juikitView.height());
         });
         if(keyListener != null) {
             juikit.frame().removeKeyListener(keyListener);
@@ -419,21 +364,11 @@ public class TrackScreen extends AbstractLoadingScreen {
                 sequencer.stop();
             }
             sequencer.close();
+            sequencer = null;
         }
         if(synthesizer != null) {
             synthesizer.close();
-        }
-    }
-
-    private void drawString(Graphics graphics, String str, int x, int y) {
-        if(screenManager.getPreferenceManager().isSummaryEnabled()) {
-            graphics.drawString(str, x, y);
-        }
-    }
-
-    private void drawStrings(Graphics graphics, List<String> strings, int x, int y) {
-        for(int i = 0; i < strings.size(); i++) {
-            drawString(graphics, strings.get(i), x, y + (20 * i));
+            synthesizer = null;
         }
     }
 }

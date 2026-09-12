@@ -22,8 +22,19 @@ public abstract class AbstractScreen {
 
     public abstract void leavePage();
 
+    public void pack(Juikit juikit) {
+        int width = juikit.width();
+        int height = juikit.height();
+        juikit.pack();
+        juikit.size(width, height);
+    }
+
     public boolean isCommandPressed(KeyEvent event) {
         return juikit.macOS() && event.isMetaDown() || !juikit.macOS() && event.isControlDown();
+    }
+
+    public Juikit getJuikit() {
+        return juikit;
     }
 
     public int textWidth(Graphics graphics, String text) {
